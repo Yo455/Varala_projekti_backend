@@ -1,9 +1,9 @@
-CREATE TABLE employees (
+CREATE TABLE users (
     id SERIAL PRIMARY KEY,
-    name TEXT,
-    position TEXT
+    name VARCHAR(100),
+    email VARCHAR(100) UNIQUE
 );
-CREATE TABLE departments (
-    id SERIAL PRIMARY KEY,
-    name TEXT
-);
+
+INSERT INTO users (name, phone) VALUES 
+('Otto', '123'),
+('Alvar', '123');

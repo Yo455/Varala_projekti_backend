@@ -1,1 +1,3 @@
-pgdata/
+# Ignore environment variable files(password etc) and database data
+.env
+postgres-data/

@@ -6,4 +6,4 @@ CREATE TABLE users (
 
 INSERT INTO users (name, phone) VALUES 
 ('Otto', '123'),
-('Alvar', '123');
+('Alvar', '456');

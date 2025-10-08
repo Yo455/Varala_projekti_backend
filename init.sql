@@ -34,3 +34,11 @@ CREATE TABLE IF NOT EXISTS Suoritus (
     lopetus_pvm DATE,
     arvosana VARCHAR(20)
 );
+
+INSERT INTO Henkilo (henkilo_oid, etunimi, sukunimi) VALUES
+('000000000000', 'Pekka', 'Pesäpalloilija');
+
+INSERT INTO Oppilaitos (nimi, tyyppi) VALUES
+('Helsingin Yliopisto', 'Yliopisto'),
+('Tampereen AMK', 'AMK'),
+('Turun Lukio', 'Lukio');

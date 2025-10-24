@@ -42,3 +42,13 @@ INSERT INTO Oppilaitos (nimi, tyyppi) VALUES
 ('Helsingin Yliopisto', 'Yliopisto'),
 ('Tampereen AMK', 'AMK'),
 ('Turun Lukio', 'Lukio');
+
+CREATE TABLE IF NOT EXISTS Opiskelija (
+    opiskelija_id SERIAL PRIMARY KEY,
+    henkilo_oid CHAR(36) NOT NULL REFERENCES Henkilo(henkilo_oid),
+    opiskelijanumero VARCHAR(20) UNIQUE,
+    lukujärjestys_linkki VARCHAR(255)
+);
+
+INSERT INTO Opiskelija (henkilo_oid, opiskelijanumero, lukujärjestys_linkki) VALUES
+('000000000000', 'OP123456', 'http://lukujarjestys.example.com/pekka');

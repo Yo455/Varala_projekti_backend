@@ -8,7 +8,7 @@ const API = "http://localhost:3001"; // backendin osoite
 
 export default function App() {
   const [sources, setSources] = useState([
-    { url: "", label: "Lähde 1", color: "#1e90ff", checked: true, events: [] },
+    { url: "", label: "Lähde ", color: "#1e90ff", checked: true, events: [] },
     { url: "", label: "Lähde 2", color: "#2ecc71", checked: true, events: [] },
   ]);
 

@@ -1,18 +1,22 @@
-const express = require("express");
-const cors = require("cors");
-const ical = require("node-ical");
+const express = require("express"); //web-palvelinkirjasto (reitit, vastaukset jne.)
+const cors = require("cors"); //antaa selaimesta tulevien frontend-pyyntöjen (eri portista) toimia.
+const ical = require("node-ical"); //lukee ja muuntaa .ics-kalenteritapahtumia JSONiksi
 
 const app = express();
 // Dev-vaiheessa helpoin: salli kaikki originit
 app.use(cors());
 app.use(express.json());
 
+//Muutetaan Fronttiin!!
 const COLORS = ["#1e90ff", "#2ecc71", "#f39c12", "#9b59b6", "#e74c3c"];
 
+// Jos linkki on webcal muodossa, muutetaan se https muotoon
 function normalizeIcsUrl(u = "") {
   return u.replace(/^webcal(s)?:\/\//i, "https://");
 }
 
+//Color pois!!
+// Ottaa ICS-tiedostosta tapahtumat: id, title, start, end, location, source
 function eventFromIcal(e, color, sourceLabel) {
   if (!e || e.type !== "VEVENT") return null;
   const start = e.start instanceof Date ? e.start.toISOString() : e.start;
@@ -29,12 +33,28 @@ function eventFromIcal(e, color, sourceLabel) {
   };
 }
 
+// Kutsutaan normalizeIcsUrl
 async function fetchIcs(url, color, label) {
   const u = normalizeIcsUrl(url);
-  const cal = await ical.async.fromURL(u, {
-    headers: { "User-Agent": "ICS-Demo/1.0 (+http://localhost)" },
-    timeout: 15000,
-  });
+  // Hakee tiedoston urlitiedon netistä
+  try { 
+
+    new URL(u); // Tarkistaa että URL on kelvollinen 
+
+  } catch { 
+
+    throw new Error(`Invalid URL: ${u}`); 
+
+  } 
+
+  const cal = await ical.async.fromURL(u, { 
+
+    headers: { "User-Agent": "ICS-Demo/1.0 (+http://localhost)" }, 
+
+    timeout: 15000, 
+
+  }); 
+  //Etsii vain tapahtumatiedot
   const out = [];
   for (const k in cal) {
     const e = cal[k];
@@ -49,7 +69,7 @@ app.get("/events", async (req, res) => {
     const raw = Array.isArray(req.query.url)
       ? req.query.url
       : req.query.url ? [req.query.url] : [];
-
+// Jos ei annettu URLia → palautetaan demodata (kaksi tapahtumaa) jotta frontend voi näyttää jotain heti
     if (raw.length === 0) {
       return res.json([
         { id: "demo-1", title: "Treeni", start: "2025-10-22T16:00:00Z", end: "2025-10-22T17:00:00Z", eventColor: COLORS[0], source: "Demo A" },
@@ -57,6 +77,7 @@ app.get("/events", async (req, res) => {
       ]);
     }
 
+// Värit vittuun
     console.log("Fetching ICS from:", raw);
     const lists = await Promise.all(
       raw.map((u, i) => fetchIcs(u, COLORS[i % COLORS.length], `Source ${i + 1}`))

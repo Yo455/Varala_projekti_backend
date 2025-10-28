@@ -43,7 +43,7 @@ export default function App() {
           params.append("url", s.url.trim());
           const res = await fetch(`${API}/events?${params.toString()}`);
           const data = await res.json();
-          return data;
+          return Array.isArray(data) ? data : [];
         })
       );
 
@@ -163,7 +163,9 @@ function Legend({ color, label }) {
 }
 
 function colorize(events, color) {
-  return (events || []).map((e) => ({
+  // 🧩 Kohta B: varmista, että events on taulukko
+  const list = Array.isArray(events) ? events : [];
+  return list.map((e) => ({
     ...e,
     backgroundColor: color,
     borderColor: color,

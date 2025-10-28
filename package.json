@@ -1,0 +1,7 @@
+{
+  "scripts": {
+    "start": "concurrently -n \"SERVER,CLIENT\" -c \"green,blue\" \"npm run server\" \"npm run client\"",
+    "server": "cd calendar-api && node index.js",
+    "client": "cd calendar-ui && npm run dev"
+  }
+}

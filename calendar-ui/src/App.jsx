@@ -43,6 +43,9 @@ export default function App() {
           params.append("url", s.url.trim());
           const res = await fetch(`${API}/events?${params.toString()}`);
           const data = await res.json();
+          if (data.error) {
+            throw new Error(data.detail || data.error);
+          }
           return Array.isArray(data) ? data : [];
         })
       );
@@ -55,7 +58,7 @@ export default function App() {
       );
     } catch (e) {
       console.error(e);
-      alert("Tietojen haku epäonnistui. Tarkista ICS-osoitteet.");
+      alert(`Tietojen haku epäonnistui: ${e.message || e}`);
     } finally {
       setLoading(false);
     }

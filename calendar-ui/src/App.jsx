@@ -5,6 +5,7 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 
 const API = "http://localhost:3001"; // backendin osoite
+const DEFAULT_COLORS = ["#1e90ff", "#2ecc71", "#f39c12", "#9b59b6", "#e74c3c"];
 
 export default function App() {
   const [sources, setSources] = useState([
@@ -110,60 +111,101 @@ export default function App() {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "1fr 1fr auto",
+          gridTemplateColumns: "1fr auto",
           gap: 8,
-          alignItems: "end",
+          alignItems: "center",
           marginBottom: 12,
         }}
       >
-        <div>
-          <label style={{ fontSize: 12 }}>ICS URL 1</label>
-          <input
-            placeholder="https://…/calendar.ics"
-            value={sources[0].url}
-            onChange={(e) =>
-              setSources(([a, b]) => [{ ...a, url: e.target.value }, b])
-            }
-            style={{ width: "100%" }}
-          />
+        <div style={{ display: "grid", gap: 8 }}>
+          {sources.map((s, i) => (
+            <div key={i} style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <div style={{ flex: 1 }}>
+                <label style={{ fontSize: 12 }}>{`ICS URL ${i + 1}`}</label>
+                <input
+                  placeholder="https://…/calendar.ics"
+                  value={s.url}
+                  onChange={(e) =>
+                    setSources((prev) => prev.map((p, idx) => (idx === i ? { ...p, url: e.target.value } : p)))
+                  }
+                  style={{ width: "100%" }}
+                />
+              </div>
+              <div style={{ display: "flex", gap: 6 }}>
+                <button
+                  title="Poista lähde ja sen tallennus palvelimelta"
+                  onClick={async () => {
+                    const urlToDelete = s.url?.trim();
+                    if (!urlToDelete) {
+                      // just remove the input
+                      setSources((prev) => prev.filter((_, idx) => idx !== i));
+                      return;
+                    }
+                    if (!confirm("Poistetaanko URL palvelimelta ja UI:sta?")) return;
+                    try {
+                      const res = await fetch(`${API}/urls`, {
+                        method: "DELETE",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ url: urlToDelete }),
+                      });
+                      if (!res.ok) throw new Error("Delete failed");
+                      // remove from UI
+                      setSources((prev) => prev.filter((_, idx) => idx !== i));
+                      // reload events
+                      await load();
+                    } catch (e) {
+                      console.error(e);
+                      alert("URLin poisto epäonnistui");
+                    }
+                  }}
+                >
+                  Poista
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
-        <div>
-          <label style={{ fontSize: 12 }}>ICS URL 2 (valinnainen)</label>
-          <input
-            placeholder="https://…/calendar.ics"
-            value={sources[1].url}
-            onChange={(e) =>
-              setSources(([a, b]) => [a, { ...b, url: e.target.value }])
-            }
-            style={{ width: "100%" }}
-          />
-        </div>
-        <div style={{ display: "inline-flex", gap: 8 }}>
-          <button onClick={load} disabled={loading} style={{ height: 36 }}>
-            {loading ? "Ladataan…" : hasUrls ? "Hae kalenterit" : "Näytä demodata"}
-          </button>
-          <button
-            onClick={async () => {
-              // collect non-empty urls and POST to backend
-              const nonEmpty = sources.map((s) => s.url?.trim()).filter(Boolean);
-              try {
-                const res = await fetch(`${API}/urls`, {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ urls: nonEmpty }),
-                });
-                if (!res.ok) throw new Error("Save failed");
-                const saved = await res.json();
-                alert(`Tallennettu ${saved.length} URL(ia)`);
-              } catch (e) {
-                console.error(e);
-                alert("URLien tallennus epäonnistui");
+
+        <div style={{ display: "flex", gap: 8 }}>
+          <div style={{ display: "inline-flex", gap: 8 }}>
+            <button onClick={() => load()} disabled={loading} style={{ height: 36 }}>
+              {loading ? "Ladataan…" : hasUrls ? "Hae kalenterit" : "Näytä demodata"}
+            </button>
+            <button
+              onClick={async () => {
+                const nonEmpty = sources.map((s) => s.url?.trim()).filter(Boolean);
+                try {
+                  const res = await fetch(`${API}/urls`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ urls: nonEmpty }),
+                  });
+                  if (!res.ok) throw new Error("Save failed");
+                  const saved = await res.json();
+                  alert(`Tallennettu ${saved.length} URL(ia)`);
+                } catch (e) {
+                  console.error(e);
+                  alert("URLien tallennus epäonnistui");
+                }
+              }}
+              style={{ height: 36 }}
+            >
+              Tallenna URLit
+            </button>
+          </div>
+          <div>
+            <button
+              onClick={() =>
+                setSources((prev) => [
+                  ...prev,
+                  { url: "", label: `Lähde ${prev.length + 1}`, color: DEFAULT_COLORS[prev.length % DEFAULT_COLORS.length], checked: true, events: [] },
+                ])
               }
-            }}
-            style={{ height: 36 }}
-          >
-            Tallenna URLit
-          </button>
+              style={{ height: 36 }}
+            >
+              Lisää lähde
+            </button>
+          </div>
         </div>
       </div>
 

@@ -14,15 +14,43 @@ export default function App() {
 
   const [loading, setLoading] = useState(false);
 
+  // Load saved URLs from backend on mount
+  useEffect(() => {
+    async function loadSaved() {
+      try {
+        const res = await fetch(`${API}/urls`);
+        if (!res.ok) return;
+        const urls = await res.json();
+        // populate first two sources with saved urls (if any) and auto-load events
+        const next = [...(sources || [])];
+        next[0] = { ...(next[0] || { label: "Lähde ", color: "#1e90ff", checked: true, events: [] }), url: urls[0] || "" };
+        next[1] = { ...(next[1] || { label: "Lähde 2", color: "#2ecc71", checked: true, events: [] }), url: urls[1] || "" };
+        setSources(next);
+        // fetch events for the restored URLs so they appear immediately
+        try {
+          await load(next);
+        } catch (e) {
+          console.warn("Auto-load after restoring urls failed:", e);
+        }
+      } catch (e) {
+        console.warn("Could not load saved urls:", e);
+      }
+    }
+    loadSaved();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const hasUrls = useMemo(
     () => sources.some((s) => s.url.trim().length > 0),
     [sources]
   );
 
-  async function load() {
+  // load events from current `sources` state or from an optional override
+  async function load(overrideSources) {
     setLoading(true);
     try {
-      const nonEmpty = sources.filter((s) => s.url.trim());
+      const usedSources = overrideSources || sources;
+      const nonEmpty = usedSources.filter((s) => s.url.trim());
 
       // Jos kaikki URLit tyhjiä → näytetään demo
       if (nonEmpty.length === 0) {
@@ -37,7 +65,7 @@ export default function App() {
 
       // Muutoin haetaan jokaiselle lähteelle erikseen
       const results = await Promise.all(
-        sources.map(async (s) => {
+        usedSources.map(async (s) => {
           if (!s.url.trim()) return [];
           const params = new URLSearchParams();
           params.append("url", s.url.trim());
@@ -110,9 +138,33 @@ export default function App() {
             style={{ width: "100%" }}
           />
         </div>
-        <button onClick={load} disabled={loading} style={{ height: 36 }}>
-          {loading ? "Ladataan…" : hasUrls ? "Hae kalenterit" : "Näytä demodata"}
-        </button>
+        <div style={{ display: "inline-flex", gap: 8 }}>
+          <button onClick={load} disabled={loading} style={{ height: 36 }}>
+            {loading ? "Ladataan…" : hasUrls ? "Hae kalenterit" : "Näytä demodata"}
+          </button>
+          <button
+            onClick={async () => {
+              // collect non-empty urls and POST to backend
+              const nonEmpty = sources.map((s) => s.url?.trim()).filter(Boolean);
+              try {
+                const res = await fetch(`${API}/urls`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ urls: nonEmpty }),
+                });
+                if (!res.ok) throw new Error("Save failed");
+                const saved = await res.json();
+                alert(`Tallennettu ${saved.length} URL(ia)`);
+              } catch (e) {
+                console.error(e);
+                alert("URLien tallennus epäonnistui");
+              }
+            }}
+            style={{ height: 36 }}
+          >
+            Tallenna URLit
+          </button>
+        </div>
       </div>
 
       {/* Checkboxit ja selitteet */}

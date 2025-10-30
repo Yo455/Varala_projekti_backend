@@ -1,6 +1,8 @@
 const express = require("express"); //web-palvelinkirjasto (reitit, vastaukset jne.)
 const cors = require("cors"); //antaa selaimesta tulevien frontend-pyyntöjen (eri portista) toimia.
 const ical = require("node-ical"); //lukee ja muuntaa .ics-kalenteritapahtumia JSONiksi
+const fs = require("fs").promises;
+const path = require("path");
 
 const app = express();
 // Dev-vaiheessa helpoin: salli kaikki originit
@@ -63,6 +65,87 @@ async function fetchIcs(url, color, label) {
   }
   return out;
 }
+
+// --- Simple file-based URL persistence (one URL per line)
+const URL_FILE = path.join(__dirname, "saved_urls.txt");
+
+async function readSavedUrls() {
+  try {
+    const txt = await fs.readFile(URL_FILE, "utf8");
+    return txt
+      .split(/\r?\n/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+  } catch (e) {
+    // If file not found, return empty list
+    if (e.code === "ENOENT") return [];
+    throw e;
+  }
+}
+
+async function writeSavedUrls(list) {
+  const unique = Array.from(new Set(list.map((s) => s.trim()).filter(Boolean)));
+  await fs.writeFile(URL_FILE, unique.join("\n"), "utf8");
+  return unique;
+}
+
+// GET saved urls
+app.get("/urls", async (_req, res) => {
+  try {
+    const urls = await readSavedUrls();
+    return res.json(urls);
+  } catch (err) {
+    console.error("Failed reading saved urls:", err);
+    return res.status(500).json({ error: "Failed reading saved urls" });
+  }
+});
+
+// POST save urls. Accepts { url } or { urls: [...] }
+app.post("/urls", async (req, res) => {
+  try {
+    const body = req.body || {};
+    let incoming = [];
+    if (Array.isArray(body.urls)) incoming = body.urls;
+    else if (typeof body.url === "string") incoming = [body.url];
+
+    // sanitize and validate URLs
+    const valid = [];
+    for (const u of incoming) {
+      if (!u || typeof u !== "string") continue;
+      const candidate = normalizeIcsUrl(u.trim());
+      try {
+        new URL(candidate);
+        valid.push(candidate);
+      } catch {
+        // ignore invalid
+      }
+    }
+
+    const existing = await readSavedUrls();
+    const merged = Array.from(new Set([...existing, ...valid]));
+    const written = await writeSavedUrls(merged);
+    return res.json(written);
+  } catch (err) {
+    console.error("Failed saving urls:", err);
+    return res.status(500).json({ error: "Failed saving urls" });
+  }
+});
+
+// DELETE single url via body { url: '...' } or query ?url=...
+app.delete("/urls", async (req, res) => {
+  try {
+    const toDelete = req.body?.url || req.query?.url;
+    if (!toDelete) return res.status(400).json({ error: "No url provided" });
+    const normalized = normalizeIcsUrl(String(toDelete).trim());
+    const existing = await readSavedUrls();
+    const filtered = existing.filter((u) => u !== normalized);
+    const written = await writeSavedUrls(filtered);
+    return res.json(written);
+  } catch (err) {
+    console.error("Failed deleting url:", err);
+    return res.status(500).json({ error: "Failed deleting url" });
+  }
+});
 
 app.get("/events", async (req, res) => {
   try {

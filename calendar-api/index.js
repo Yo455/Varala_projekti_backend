@@ -4,6 +4,14 @@ const ical = require("node-ical"); //lukee ja muuntaa .ics-kalenteritapahtumia J
 const fs = require("fs").promises;
 const path = require("path");
 
+// Yksinkertainen Express-API, joka hakee ICS-kalenterit ja tallentaa
+// käyttäjän antamat ICS-URLit tekstimuotoiseen tiedostoon. Frontend
+// (calendar-ui) kutsuu `/events`-päätepistettä hakiakseen tapahtumia
+// yhdeltä tai useammalta ICS-URLilta. Palvelin tarjoaa myös yksinkertaiset
+// tallennuspäätepisteet (`/urls` GET/POST/DELETE), jotka lukevat ja kirjoittavat
+// `saved_urls.txt`-tiedostoa samassa kansiossa. Tämä ratkaisu on kevyt
+// kehitystä ja demoja varten; tuotannossa kannattaa käyttää tietokantaa ja
+// autentikointia.
 const app = express();
 // Dev-vaiheessa helpoin: salli kaikki originit
 app.use(cors());
@@ -14,6 +22,9 @@ const COLORS = ["#1e90ff", "#2ecc71", "#f39c12", "#9b59b6", "#e74c3c"];
 
 // Jos linkki on webcal muodossa, muutetaan se https muotoon
 function normalizeIcsUrl(u = "") {
+  // Normalisoi yleiset kalenteriskeemat (esim. webcal://) https-muotoon niin
+  // että node-ical voi hakea resurssin. Tämä pitää UI:n yksinkertaisena: käyttäjä
+  // voi liittää joko webcal://... tai https://... -linkin.
   return u.replace(/^webcal(s)?:\/\//i, "https://");
 }
 
@@ -84,12 +95,16 @@ async function readSavedUrls() {
 }
 
 async function writeSavedUrls(list) {
+  // Kirjoittaa tiedostoon duplikaatit poistettuna listan URL-osoitteita, yksi
+  // URL riviä kohden. Palauttaa kirjoitetun (kanonisen) URL-listan.
   const unique = Array.from(new Set(list.map((s) => s.trim()).filter(Boolean)));
   await fs.writeFile(URL_FILE, unique.join("\n"), "utf8");
   return unique;
 }
 
-// GET saved urls
+// GET /urls
+// Palauttaa tallennetut ICS-URLit JSON-taulukkona. Frontend käyttää tätä
+// sivun latauksessa täyttääkseen URL-kentät käyttäjän valintojen säilyttämiseksi.
 app.get("/urls", async (_req, res) => {
   try {
     const urls = await readSavedUrls();
@@ -100,7 +115,10 @@ app.get("/urls", async (_req, res) => {
   }
 });
 
-// POST save urls. Accepts { url } or { urls: [...] }
+// POST /urls
+// Tallenna yksi tai useampi URL. Pyynnön body voi olla { url: "..." } tai
+// { urls: ["...", ...] }. Palvelin validoi URLit, normalisoi webcal:// → https://
+// ja liittää ne tallennettuun listaan (duplikaatit poistetaan).
 app.post("/urls", async (req, res) => {
   try {
     const body = req.body || {};
@@ -131,7 +149,9 @@ app.post("/urls", async (req, res) => {
   }
 });
 
-// DELETE single url via body { url: '...' } or query ?url=...
+// DELETE /urls
+// Poistaa yhden URLin tallennetusta listasta. Hyväksyy JSON-bodyn { url: '...' }
+// tai kyselyparametrin ?url=... . Palauttaa päivitetyn listan.
 app.delete("/urls", async (req, res) => {
   try {
     const toDelete = req.body?.url || req.query?.url;
@@ -147,6 +167,10 @@ app.delete("/urls", async (req, res) => {
   }
 });
 
+// GET /events
+// Hakee tapahtumat yhdestä tai useammasta ICS-URLista. Frontend kutsuu tätä
+// päätepistettä `?url=...` -kyselyparametreilla (useita sallittu). Jos URLia
+// ei anneta, palautetaan demotapahtumia jotta kalenteri näyttää jotain kehityksessä.
 app.get("/events", async (req, res) => {
   try {
     const raw = Array.isArray(req.query.url)

@@ -4,7 +4,10 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 
+// Backendin perusosoite. Frontend kutsuu `calendar-api/index.js`-tiedoston
+// päätepisteitä hakeakseen tapahtumia ja hallitakseen tallennettua URL-listaa.
 const API = "http://localhost:3001"; // backendin osoite
+// Pieni väripaletti, jota käytetään eri lähteiden tapahtumien väritykseen.
 const DEFAULT_COLORS = ["#1e90ff", "#2ecc71", "#f39c12", "#9b59b6", "#e74c3c"];
 
 export default function App() {
@@ -15,7 +18,10 @@ export default function App() {
 
   const [loading, setLoading] = useState(false);
 
-  // Load saved URLs from backend on mount
+  // Lataa tallennetut URLit palvelimelta komponentin luontivaiheessa
+  // Palvelin palauttaa JSON-taulukon tallennetuista URL-osoitteista. Täytämme
+  // ensimmäiset input-kentät näillä arvoilla ja käynnistämme heti hakemisen,
+  // jotta tallennetut tapahtumat näkyvät sivun päivityksen jälkeen.
   useEffect(() => {
     async function loadSaved() {
       try {
@@ -46,14 +52,19 @@ export default function App() {
     [sources]
   );
 
-  // load events from current `sources` state or from an optional override
+  // Lataa tapahtumat nykyisestä `sources`-tilasta tai vaihtoehtoisesta
+  // lähdelistasta (overrideSources). Jos `overrideSources` annetaan, sitä
+  // käytetään komponentin tilan sijaan. Tämä mahdollistaa kenttien asettamisen
+  // ja tapahtumien hakemisen peräkkäin ilman että odotetaan setState-päivitystä.
   async function load(overrideSources) {
     setLoading(true);
     try {
       const usedSources = overrideSources || sources;
       const nonEmpty = usedSources.filter((s) => s.url.trim());
 
-      // Jos kaikki URLit tyhjiä → näytetään demo
+  // Jos kaikki URLit tyhjiä → näytetään demo
+  // Palvelin palauttaa demotapahtumat, jos URL-parametreja ei anneta, joten
+  // UI:llä on jotain näytettävää kehitysvaiheessa.
       if (nonEmpty.length === 0) {
         const res = await fetch(`${API}/events`);
         const data = await res.json();
@@ -64,7 +75,10 @@ export default function App() {
         return;
       }
 
-      // Muutoin haetaan jokaiselle lähteelle erikseen
+  // Muutoin haetaan jokaiselle lähteelle erikseen
+  // Käymme läpi lähdelistan ja kutsumme backendin `/events?url=...` -
+  // päätepistettä jokaiselle ei-tyhjälle URLille. Palvelin hoitaa etäisten
+  // ICS-tiedostojen hakemisen ja jäsentämisen.
       const results = await Promise.all(
         usedSources.map(async (s) => {
           if (!s.url.trim()) return [];
@@ -94,6 +108,10 @@ export default function App() {
   }
 
   useEffect(() => {
+    // Ensimmäisellä renderöinnillä haetaan demodata (tai tapahtumat
+    // valmiiksi täytetyille lähteille). Näin käyttäytyminen on yhtenäinen
+    // riippumatta siitä, onko käyttäjä syöttänyt URLit manuaalisesti tai
+    // palauttanut ne palvelimelta.
     load(); // näyttää demodatan heti, jos URLit ovat tyhjät
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -260,7 +278,7 @@ function Legend({ color, label }) {
 }
 
 function colorize(events, color) {
-  // 🧩 Kohta B: varmista, että events on taulukko
+  // Kohta B: varmista, että events on taulukko
   const list = Array.isArray(events) ? events : [];
   return list.map((e) => ({
     ...e,

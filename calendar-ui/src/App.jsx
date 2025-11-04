@@ -263,6 +263,7 @@ export default function App() {
         initialView="timeGridWeek"
         height="78vh"
         events={displayedEvents}
+        firstDay={1}
       />
     </div>
   );

@@ -30,3 +30,6 @@ Thumbs.db
 
 # Vite- ja tukiartifaktit
 vite.config.js.timestamp-*
+# Ignore environment variable files(password etc) and database data
+.env
+postgres-data/

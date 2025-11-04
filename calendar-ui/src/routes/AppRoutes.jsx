@@ -5,8 +5,8 @@ import Login from "../pages/Login";
 export default function AppRoutes() {
     return (
         <Routes>
-            <Route path="/" element={<Calendar />} />
-            <Route path="/login" element={<Login />} />
+            <Route path="/" element={<Login />} />
+            <Route path="/calendar" element={<Calendar />} />
             <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
     );

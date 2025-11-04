@@ -1,3 +1,35 @@
+# Node.js riippuvuudet
+node_modules/
+calendar-api/node_modules/
+calendar-ui/node_modules/
+
+# Rakennetut tiedostot
+dist/
+build/
+calendar-ui/dist/
+calendar-api/build/
+
+# Lokit
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Ympäristömuuttujat
+.env
+.env.local
+calendar-api/.env
+calendar-ui/.env
+
+# OS-jätteet
+.DS_Store
+Thumbs.db
+
+# Editorin asetukset
+.vscode/
+.idea/
+
+# Vite- ja tukiartifaktit
+vite.config.js.timestamp-*
 # Ignore environment variable files(password etc) and database data
 .env
 postgres-data/

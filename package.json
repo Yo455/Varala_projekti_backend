@@ -1,0 +1,11 @@
+{
+  "scripts": {
+    "postinstall": "cd calendar-api && npm install && cd ../calendar-ui && npm install",
+    "start": "concurrently -n \"SERVER,CLIENT\" -c \"green,blue\" \"npm run server\" \"npm run client\"",
+    "server": "cd calendar-api && node index.js",
+    "client": "cd calendar-ui && npm run dev"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

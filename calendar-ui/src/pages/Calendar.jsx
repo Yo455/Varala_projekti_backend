@@ -1,84 +1,122 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 
-// Backendin perusosoite. Frontend kutsuu `calendar-api/index.js`-tiedoston
-// päätepisteitä hakeakseen tapahtumia ja hallitakseen tallennettua URL-listaa.
-const API = "http://localhost:3001"; // backendin osoite
-// Pieni väripaletti, jota käytetään eri lähteiden tapahtumien väritykseen.
+// Backend-API:n osoite ja oletusvärit eri lähteille
+const API = "http://localhost:3001";
 const DEFAULT_COLORS = ["#1e90ff", "#2ecc71", "#f39c12", "#9b59b6", "#e74c3c"];
 
 export default function Calendar() {
+  // sources = käyttäjän syöttämät ICS-lähteet (tekstilaatikot + niihin liittyvät tapahtumat)
   const [sources, setSources] = useState([
-    { url: "", label: "Lähde ", color: "#1e90ff", checked: true, events: [] },
+    { url: "", label: "Lähde 1", color: "#1e90ff", checked: true, events: [] },
     { url: "", label: "Lähde 2", color: "#2ecc71", checked: true, events: [] },
   ]);
 
+  // loading = näytön/disablauslogiikka hakujen aikana
   const [loading, setLoading] = useState(false);
 
-  // Lataa tallennetut URLit palvelimelta komponentin luontivaiheessa
-  // Palvelin palauttaa JSON-taulukon tallennetuista URL-osoitteista. Täytämme
-  // ensimmäiset input-kentät näillä arvoilla ja käynnistämme heti hakemisen,
-  // jotta tallennetut tapahtumat näkyvät sivun päivityksen jälkeen.
+  // demoEvents = demodatan tapahtumat, kun URLeja ei ole (pidetään erillään sources.events:istä)
+  const [demoEvents, setDemoEvents] = useState([]);
+
+  // calRef = FullCalendar-instanssin ref, jotta voidaan hypätä tiettyyn päivään (gotoDate)
+  const calRef = useRef(null);
+
+  // Apufunktio: jos iso-aikaleima on olemassa, siirrä kalenteri kyseiseen päivään
+  function gotoIfPossible(iso) {
+    if (!iso || !calRef.current) return;
+    try {
+      calRef.current.getApi().gotoDate(iso);
+    } catch {}
+  }
+
+  // Lataa tallennetut URLit heti komponentin mountissa:
+  // - jos URLeja ei ole → näytä demodata
+  // - jos URLeja on → lataa niiden tapahtumat
   useEffect(() => {
-    async function loadSaved() {
+    async function loadSavedOnMount() {
       try {
         const res = await fetch(`${API}/urls`);
         if (!res.ok) return;
-        const urls = await res.json();
-        // populate first two sources with saved urls (if any) and auto-load events
+        const data = await res.json();
+
+        // Normalisoi muotoon { id, url }
+        const urls = Array.isArray(data)
+          ? data.map((d) =>
+              typeof d === "string" ? { id: undefined, url: d } : { id: d.id, url: d.url }
+            )
+          : [];
+
+        // Täytä kaksi ensimmäistä lähdettä palvelimen palauttamilla arvoilla (jos löytyy)
         const next = [...(sources || [])];
-        next[0] = { ...(next[0] || { label: "Lähde ", color: "#1e90ff", checked: true, events: [] }), url: urls[0] || "" };
-        next[1] = { ...(next[1] || { label: "Lähde 2", color: "#2ecc71", checked: true, events: [] }), url: urls[1] || "" };
+        next[0] = {
+          ...(next[0] || { label: "Lähde 1", color: "#1e90ff", checked: true, events: [] }),
+          url: urls[0]?.url || "",
+          id: urls[0]?.id,
+        };
+        next[1] = {
+          ...(next[1] || { label: "Lähde 2", color: "#2ecc71", checked: true, events: [] }),
+          url: urls[1]?.url || "",
+          id: urls[1]?.id,
+        };
         setSources(next);
-        // fetch events for the restored URLs so they appear immediately
-        try {
+
+        // Päätä näytetäänkö demot vai haetaanko oikeat kalenterit
+        if (!urls[0]?.url && !urls[1]?.url) {
+          await showDemo();
+        } else {
           await load(next);
-        } catch (e) {
-          console.warn("Auto-load after restoring urls failed:", e);
         }
       } catch (e) {
         console.warn("Could not load saved urls:", e);
       }
     }
-    loadSaved();
+    loadSavedOnMount();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const hasUrls = useMemo(
-    () => sources.some((s) => s.url.trim().length > 0),
-    [sources]
-  );
+  // Onko vähintään yksi URL syötettynä?
+  const hasUrls = useMemo(() => sources.some((s) => s.url.trim().length > 0), [sources]);
 
-  // Lataa tapahtumat nykyisestä `sources`-tilasta tai vaihtoehtoisesta
-  // lähdelistasta (overrideSources). Jos `overrideSources` annetaan, sitä
-  // käytetään komponentin tilan sijaan. Tämä mahdollistaa kenttien asettamisen
-  // ja tapahtumien hakemisen peräkkäin ilman että odotetaan setState-päivitystä.
+  // Näytä demodata (haetaan backendin /events ilman parametreja → palauttaa kovakoodatut demot)
+  // Ei koske sources-tilaan: demot pidetään omassa tilassaan (demoEvents)
+  async function showDemo() {
+    setLoading(true);
+    try {
+      const res = await fetch(`${API}/events`);
+      const data = await res.json();
+      const events = Array.isArray(data) ? data : [];
+      const colored = colorize(events, DEFAULT_COLORS[0]); // väritys yhtenäiseksi
+      setDemoEvents(colored); // näytetään demot
+      if (colored.length > 0) gotoIfPossible(colored[0].start); // hyppää ensimmäiseen tapahtumaan
+    } catch (e) {
+      console.error(e);
+      alert(`Demon haku epäonnistui: ${e.message || e}`);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // Lataa tapahtumat annetuista (tai nykyisistä) lähteistä.
+  // Jos yksikään lähde ei sisällä URLia → näytä demodata.
   async function load(overrideSources) {
     setLoading(true);
     try {
       const usedSources = overrideSources || sources;
       const nonEmpty = usedSources.filter((s) => s.url.trim());
 
-  // Jos kaikki URLit tyhjiä → näytetään demo
-  // Palvelin palauttaa demotapahtumat, jos URL-parametreja ei anneta, joten
-  // UI:llä on jotain näytettävää kehitysvaiheessa.
+      // Ei URLeja → demot esiin
       if (nonEmpty.length === 0) {
-        const res = await fetch(`${API}/events`);
-        const data = await res.json();
-        setSources((prev) => [
-          { ...prev[0], events: colorize(data, prev[0].color) },
-          { ...prev[1], events: [] },
-        ]);
+        await showDemo();
         return;
       }
 
-  // Muutoin haetaan jokaiselle lähteelle erikseen
-  // Käymme läpi lähdelistan ja kutsumme backendin `/events?url=...` -
-  // päätepistettä jokaiselle ei-tyhjälle URLille. Palvelin hoitaa etäisten
-  // ICS-tiedostojen hakemisen ja jäsentämisen.
+      // Jos haetaan oikeita kalentereita, piilota demot
+      setDemoEvents([]);
+
+      // Hae jokaisen lähteen tapahtumat erikseen
       const results = await Promise.all(
         usedSources.map(async (s) => {
           if (!s.url.trim()) return [];
@@ -86,19 +124,22 @@ export default function Calendar() {
           params.append("url", s.url.trim());
           const res = await fetch(`${API}/events?${params.toString()}`);
           const data = await res.json();
-          if (data.error) {
-            throw new Error(data.detail || data.error);
-          }
+          if (data.error) throw new Error(data.detail || data.error);
           return Array.isArray(data) ? data : [];
         })
       );
 
+      // Päivitä lähteiden events-listat vastaamaan hakutuloksia (värit päälle)
       setSources((prev) =>
-        prev.map((s, i) => ({
+        (overrideSources || prev).map((s, i) => ({
           ...s,
           events: colorize(results[i] || [], s.color),
         }))
       );
+
+      // Jos vähintään yksi tapahtuma löytyi, hyppää sen päivään
+      const flattened = results.flat();
+      if (flattened.length > 0) gotoIfPossible(flattened[0]?.start);
     } catch (e) {
       console.error(e);
       alert(`Tietojen haku epäonnistui: ${e.message || e}`);
@@ -107,25 +148,53 @@ export default function Calendar() {
     }
   }
 
-  useEffect(() => {
-    // Ensimmäisellä renderöinnillä haetaan demodata (tai tapahtumat
-    // valmiiksi täytetyille lähteille). Näin käyttäytyminen on yhtenäinen
-    // riippumatta siitä, onko käyttäjä syöttänyt URLit manuaalisesti tai
-    // palauttanut ne palvelimelta.
-    load(); // näyttää demodatan heti, jos URLit ovat tyhjät
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Näytettävät tapahtumat = vain valittujen lähteiden tapahtumat
+  // Mikä näytetään kalenterissa:
+  // - jos demoEvents ei ole tyhjä → näytä demot
+  // - muuten näytä valittujen (checked) lähteiden tapahtumat
   const displayedEvents = useMemo(() => {
+    if (demoEvents.length > 0) return demoEvents;
     return sources.filter((s) => s.checked).flatMap((s) => s.events);
-  }, [sources]);
+  }, [sources, demoEvents]);
+
+  // “Lataa tallennetut” -nappi: kysyy uudestaan /urls, täyttää kentät ja hakee tapahtumat
+  async function loadSavedNow() {
+    try {
+      const res = await fetch(`${API}/urls`);
+      if (!res.ok) throw new Error("GET /urls failed");
+      const data = await res.json();
+
+      // Normalisoi muotoon { id, url }
+      const urls = Array.isArray(data)
+        ? data.map((d) => (typeof d === "string" ? { id: undefined, url: d } : { id: d.id, url: d.url }))
+        : [];
+
+      // Kirjoita kaksi ensimmäistä lähdettä
+      const next = [...(sources || [])];
+      next[0] = {
+        ...(next[0] || { label: "Lähde 1", color: "#1e90ff", checked: true, events: [] }),
+        url: urls[0]?.url || "",
+        id: urls[0]?.id,
+      };
+      next[1] = {
+        ...(next[1] || { label: "Lähde 2", color: "#2ecc71", checked: true, events: [] }),
+        url: urls[1]?.url || "",
+        id: urls[1]?.id,
+      };
+      setSources(next);
+
+      // Lataa events näille lähteille
+      await load(next);
+    } catch (e) {
+      console.error(e);
+      alert(`Tallennettujen URLien haku epäonnistui: ${e.message || e}`);
+    }
+  }
 
   return (
     <div style={{ padding: 16, maxWidth: 1100, margin: "0 auto" }}>
       <h2>Kalenteri-demo (ICS → FullCalendar)</h2>
 
-      {/* URL-kentät ja haku */}
+      {/* Ylärivi: URL-kentät + toiminnot */}
       <div
         style={{
           display: "grid",
@@ -135,6 +204,7 @@ export default function Calendar() {
           marginBottom: 12,
         }}
       >
+        {/* Vasemmalla: dynaaminen lista lähteiden syöttökenttiä */}
         <div style={{ display: "grid", gap: 8 }}>
           {sources.map((s, i) => (
             <div key={i} style={{ display: "flex", gap: 8, alignItems: "center" }}>
@@ -144,33 +214,55 @@ export default function Calendar() {
                   placeholder="https://…/calendar.ics"
                   value={s.url}
                   onChange={(e) =>
-                    setSources((prev) => prev.map((p, idx) => (idx === i ? { ...p, url: e.target.value } : p)))
+                    setSources((prev) =>
+                      prev.map((p, idx) => (idx === i ? { ...p, url: e.target.value } : p))
+                    )
                   }
                   style={{ width: "100%" }}
                 />
               </div>
+
+              {/* Poista-nappi:
+                  - jos rivillä ei ole id tai url → poistaa vain UI:sta
+                  - jos on id/url → poistaa myös kannasta ja päivittää näkymän heti */}
               <div style={{ display: "flex", gap: 6 }}>
                 <button
                   title="Poista lähde ja sen tallennus palvelimelta"
                   onClick={async () => {
                     const urlToDelete = s.url?.trim();
-                    if (!urlToDelete) {
-                      // just remove the input
-                      setSources((prev) => prev.filter((_, idx) => idx !== i));
+                    const idToDelete = s.id;
+
+                    // Ei id:tä eikä urlia → pelkkä UI-rivin poisto
+                    if (!urlToDelete && !idToDelete) {
+                      const remainingLocal = sources.filter((_, idx) => idx !== i);
+                      setSources(remainingLocal);
+                      if (remainingLocal.length === 0) setDemoEvents([]); // jos ei yhtään riviä → tyhjä näkymä
                       return;
                     }
                     if (!confirm("Poistetaanko URL palvelimelta ja UI:sta?")) return;
+
                     try {
+                      // Laske etukäteen jäljelle jäävät rivit (ettei setState aiheuta viivettä)
+                      const remaining = sources.filter((_, idx) => idx !== i);
+
+                      // Poista kannasta id:llä (ensisijainen) tai urlilla (fallback)
+                      const body = idToDelete ? { id: idToDelete } : { url: urlToDelete };
                       const res = await fetch(`${API}/urls`, {
                         method: "DELETE",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ url: urlToDelete }),
+                        body: JSON.stringify(body),
                       });
                       if (!res.ok) throw new Error("Delete failed");
-                      // remove from UI
-                      setSources((prev) => prev.filter((_, idx) => idx !== i));
-                      // reload events
-                      await load();
+
+                      // Päivitä UI heti pois
+                      setSources(remaining);
+
+                      // Jos rivejä jäi → hae niiden tapahtumat, muuten tyhjennä demot
+                      if (remaining.length > 0) {
+                        await load(remaining);
+                      } else {
+                        setDemoEvents([]);
+                      }
                     } catch (e) {
                       console.error(e);
                       alert("URLin poisto epäonnistui");
@@ -184,11 +276,15 @@ export default function Calendar() {
           ))}
         </div>
 
+        {/* Oikealla: toimintonapit */}
         <div style={{ display: "flex", gap: 8 }}>
           <div style={{ display: "inline-flex", gap: 8 }}>
+            {/* Hae kalenterit / Näytä demodata (riippuen onko URLeja) */}
             <button onClick={() => load()} disabled={loading} style={{ height: 36 }}>
               {loading ? "Ladataan…" : hasUrls ? "Hae kalenterit" : "Näytä demodata"}
             </button>
+
+            {/* Tallenna syötetyt URLit kantaan ja päivitä UI id:illä */}
             <button
               onClick={async () => {
                 const nonEmpty = sources.map((s) => s.url?.trim()).filter(Boolean);
@@ -199,8 +295,32 @@ export default function Calendar() {
                     body: JSON.stringify({ urls: nonEmpty }),
                   });
                   if (!res.ok) throw new Error("Save failed");
-                  const saved = await res.json();
-                  alert(`Tallennettu ${saved.length} URL(ia)`);
+
+                  // Hae heti tallennetut rivit palauttaaksesi id:t UI:lle
+                  const refreshed = await fetch(`${API}/urls`);
+                  if (refreshed.ok) {
+                    const data = await refreshed.json();
+                    const urls = Array.isArray(data)
+                      ? data.map((d) =>
+                          typeof d === "string" ? { id: undefined, url: d } : { id: d.id, url: d.url }
+                        )
+                      : [];
+                    setSources((prev) => [
+                      {
+                        ...prev[0],
+                        url: urls[0]?.url || prev[0]?.url || "",
+                        id: urls[0]?.id || prev[0]?.id,
+                      },
+                      {
+                        ...prev[1],
+                        url: urls[1]?.url || prev[1]?.url || "",
+                        id: urls[1]?.id || prev[1]?.id,
+                      },
+                    ]);
+                    alert(`Tallennettu ${urls.length} URL(ia)`);
+                  } else {
+                    alert("Tallennettu, mutta päivitys epäonnistui");
+                  }
                 } catch (e) {
                   console.error(e);
                   alert("URLien tallennus epäonnistui");
@@ -210,13 +330,26 @@ export default function Calendar() {
             >
               Tallenna URLit
             </button>
+
+            {/* Lataa kantaan tallennetut URLit takaisin kenttiin (ja hae niiden tapahtumat) */}
+            <button onClick={loadSavedNow} style={{ height: 36 }}>
+              Lataa tallennetut
+            </button>
           </div>
+
+          {/* Lisää uusi tyhjä lähderivi */}
           <div>
             <button
               onClick={() =>
                 setSources((prev) => [
                   ...prev,
-                  { url: "", label: `Lähde ${prev.length + 1}`, color: DEFAULT_COLORS[prev.length % DEFAULT_COLORS.length], checked: true, events: [] },
+                  {
+                    url: "",
+                    label: `Lähde ${prev.length + 1}`,
+                    color: DEFAULT_COLORS[prev.length % DEFAULT_COLORS.length],
+                    checked: true,
+                    events: [],
+                  },
                 ])
               }
               style={{ height: 36 }}
@@ -227,7 +360,7 @@ export default function Calendar() {
         </div>
       </div>
 
-      {/* Checkboxit ja selitteet */}
+      {/* Checkboxit: voit piilottaa/näyttää kunkin lähteen tapahtumat ilman poistamista */}
       <div
         style={{
           display: "flex",
@@ -238,18 +371,13 @@ export default function Calendar() {
         }}
       >
         {sources.map((s, i) => (
-          <label
-            key={i}
-            style={{ display: "inline-flex", gap: 8, alignItems: "center" }}
-          >
+          <label key={i} style={{ display: "inline-flex", gap: 8, alignItems: "center" }}>
             <input
               type="checkbox"
               checked={s.checked}
               onChange={(e) =>
                 setSources((prev) =>
-                  prev.map((p, idx) =>
-                    idx === i ? { ...p, checked: e.target.checked } : p
-                  )
+                  prev.map((p, idx) => (idx === i ? { ...p, checked: e.target.checked } : p))
                 )
               }
             />
@@ -258,7 +386,9 @@ export default function Calendar() {
         ))}
       </div>
 
+      {/* Varsinainen kalenterikomponentti */}
       <FullCalendar
+        ref={calRef}
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
         initialView="timeGridWeek"
         height="78vh"
@@ -268,6 +398,7 @@ export default function Calendar() {
   );
 }
 
+// Selitelegendan värineliö + teksti
 function Legend({ color, label }) {
   return (
     <span style={{ display: "inline-flex", gap: 6, alignItems: "center" }}>
@@ -277,8 +408,8 @@ function Legend({ color, label }) {
   );
 }
 
+// Lisää FullCalendarin väriattribuutit eventteihin (näkyy kalenterissa)
 function colorize(events, color) {
-  // Kohta B: varmista, että events on taulukko
   const list = Array.isArray(events) ? events : [];
   return list.map((e) => ({
     ...e,

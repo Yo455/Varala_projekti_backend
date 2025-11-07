@@ -13,3 +13,36 @@ services:
     volumes:
       - ./postgres-data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  api:
+    image: node:20
+    container_name: calendar_api
+    restart: always
+    working_dir: /app
+    volumes:
+      - ./calendar-api:/app
+      - /app/node_modules
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: mydb
+      PGHOST: db
+      PGPORT: 5432
+    ports:
+      - "3001:3001"
+    depends_on:
+      - db
+    command: sh -c "npm install && npm start"
+
+  ui:
+    image: node:20
+    container_name: calendar_ui
+    working_dir: /app
+    volumes:
+      - ./calendar-ui:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"

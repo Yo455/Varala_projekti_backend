@@ -56,5 +56,7 @@ INSERT INTO Opiskelija (henkilo_oid, opiskelijanumero, lukujärjestys_linkki) VA
 -- Table for storing saved ICS URLs used by the calendar-api
 CREATE TABLE IF NOT EXISTS saved_urls (
     id SERIAL PRIMARY KEY,
-    url TEXT UNIQUE NOT NULL
-);
+    user_name TEXT NOT NULL,
+    url TEXT NOT NULL,
+    UNIQUE (user_name, url)
+  );

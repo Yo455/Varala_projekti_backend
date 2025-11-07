@@ -15,11 +15,13 @@ async function init() {
     pool = new Pool({ connectionString: DB_URL });
     await pool.query("SELECT 1");
     await pool.query(`
-      CREATE TABLE IF NOT EXISTS saved_urls (
-        id SERIAL PRIMARY KEY,
-        url TEXT UNIQUE NOT NULL
-      );
-    `);
+  CREATE TABLE IF NOT EXISTS saved_urls (
+    id SERIAL PRIMARY KEY,
+    user_name TEXT NOT NULL,
+    url TEXT NOT NULL,
+    UNIQUE (user_name, url)
+  );
+`);
     ready = true;
     console.log("✅ db.js: Postgres available, using DB-backed storage");
   } catch (err) {
@@ -48,85 +50,107 @@ async function writeFileUrls(list) {
   return unique;
 }
 */
-async function getAll() {
+async function getAll(user) {
   if (!ready || !pool) {
     console.warn("db.js getAll: Postgres not ready — returning empty list");
     return [];
   }
   try {
-    // Return rows with a sequential index (seq) so UI can display 1..N order
-    const res = await pool.query(
-      `SELECT id, url, ROW_NUMBER() OVER (ORDER BY id) AS seq FROM saved_urls ORDER BY id`
-    );
-    return res.rows.map((r) => ({ id: r.id, url: r.url, seq: Number(r.seq) }));
+    const params = [];
+    let query = `SELECT id, user_name AS user, url, ROW_NUMBER() OVER (ORDER BY id) AS seq FROM saved_urls`;
+    if (user) {
+      query += ` WHERE user_name = $1 ORDER BY id`;
+      params.push(user);
+    } else {
+      query += ` ORDER BY id`;
+    }
+
+    const res = await pool.query(query, params);
+    return res.rows.map((r) => ({
+      id: r.id,
+      user: r.user,
+      url: r.url,
+      seq: Number(r.seq),
+    }));
   } catch (err) {
     console.warn("db.js getAll failed:", err.message);
     return [];
   }
 }
 
-async function add(urls) {
-  // Normalize and deduplicate incoming URLs (strip webcal -> https and trailing slashes)
+
+async function add(urls, user) {
+  if (!user) {
+    console.warn("db.js add: Missing user");
+    return await getAll();
+  }
+
   const normalizeUrl = (u) =>
     String(u || "").trim().replace(/^webcal(s)?:\/\//i, "https://").replace(/\/+$/, "");
 
-  const unique = Array.from(
-    new Set((urls || []).map((s) => normalizeUrl(s)).filter(Boolean))
-  );
-  if (unique.length === 0) return await getAll();
+  const unique = Array.from(new Set((urls || []).map((s) => normalizeUrl(s)).filter(Boolean)));
+  if (unique.length === 0) return await getAll(user);
+
   if (!ready || !pool) {
     console.warn("db.js add: Postgres not ready — no-op, returning current list");
-    return await getAll();
+    return await getAll(user);
   }
+
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
-    const insertText = "INSERT INTO saved_urls(url) VALUES($1) ON CONFLICT DO NOTHING";
+    const insertText =
+      "INSERT INTO saved_urls(user_name, url) VALUES($1, $2) ON CONFLICT DO NOTHING";
     for (const u of unique) {
-      await client.query(insertText, [u]);
+      await client.query(insertText, [user, u]);
     }
     await client.query("COMMIT");
   } catch (err) {
-    try { await client.query("ROLLBACK"); } catch (_) {}
+    try { await client.query("ROLLBACK"); } catch (_) { }
     console.warn("db.js add failed:", err.message);
   } finally {
     client.release();
   }
-  return await getAll();
+
+  return await getAll(user);
 }
 
-async function removeById(id) {
-  if (!id) return await getAll();
+
+
+async function removeById(id, user) {
+  if (!id || !user) return await getAll(user);
   if (!ready || !pool) {
-    console.warn("db.js removeById: Postgres not ready — no-op" );
-    return await getAll();
+    console.warn("db.js removeById: Postgres not ready — no-op");
+    return await getAll(user);
   }
   try {
-    await pool.query("DELETE FROM saved_urls WHERE id = $1", [id]);
-    return await getAll();
+    await pool.query("DELETE FROM saved_urls WHERE id = $1 AND user_name = $2", [id, user]);
+    return await getAll(user);
   } catch (err) {
     console.warn("db.js removeById failed:", err.message);
-    return await getAll();
+    return await getAll(user);
   }
 }
 
-async function removeByUrl(url) {
-  if (!url) return await getAll();
+async function removeByUrl(url, user) {
+  if (!url || !user) return await getAll(user);
   if (!ready || !pool) {
     console.warn("db.js removeByUrl: Postgres not ready — no-op");
-    return await getAll();
+    return await getAll(user);
   }
-  // canonicalize: https, strip trailing slashes
   const canonical = String(url || "").trim().replace(/^webcal(s)?:\/\//i, "https://").replace(/\/+$/, "");
   try {
-    // Delete rows where url normalized (strip trailing slashes) equals canonical
-    await pool.query("DELETE FROM saved_urls WHERE regexp_replace(url, '/+$', '') = $1", [canonical]);
-    return await getAll();
+    await pool.query(
+      "DELETE FROM saved_urls WHERE regexp_replace(url, '/+$', '') = $1 AND user_name = $2",
+      [canonical, user]
+    );
+    return await getAll(user);
   } catch (err) {
     console.warn("db.js removeByUrl failed:", err.message);
-    return await getAll();
+    return await getAll(user);
   }
 }
+
 
 module.exports = {
   getAll,

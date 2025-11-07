@@ -52,3 +52,11 @@ CREATE TABLE IF NOT EXISTS Opiskelija (
 
 INSERT INTO Opiskelija (henkilo_oid, opiskelijanumero, lukujärjestys_linkki) VALUES
 ('000000000000', 'OP123456', 'http://lukujarjestys.example.com/pekka');
+
+-- Table for storing saved ICS URLs used by the calendar-api
+CREATE TABLE IF NOT EXISTS saved_urls (
+    id SERIAL PRIMARY KEY,
+    user_name TEXT NOT NULL,
+    url TEXT NOT NULL,
+    UNIQUE (user_name, url)
+  );

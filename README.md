@@ -43,6 +43,6 @@ Voi tallentaa eri profiileille omat lukujärjestykset
 5. Tarkastele tietokantaa
 
     Komennolla `docker exec -it my_postgres psql -U myuser -d mydb ` pääsee katsomaan tietokantaa komentokehotteen kautta.
-    Voi tarkastella tallennettuja url-linkkejä komennnon ` select * from saved_urls; ` avulla.
+    Voi tarkastella tallennettuja url-linkkejä komennon ` select * from saved_urls; ` avulla.
 
 

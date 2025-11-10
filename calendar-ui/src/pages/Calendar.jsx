@@ -273,7 +273,7 @@ export default function Calendar() {
   ];
 
   return (
-    <div style={{ padding: 16, maxWidth: 1100, margin: "0 auto" }}>
+    <div style={{ padding: 16, maxWidth: 1100, margin: "0 auto", whiteSpace: 'pre-line' }}>
 
       <ProfileHeader
         activeProfile={activeProfile}
@@ -305,18 +305,18 @@ export default function Calendar() {
         events={displayedEvents}
         firstDay={1}
         titleFormat='dd.MM.yyyy'
-        slotLabelFormat={{
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: false
+        slotLabelContent={(arg) => {
+          const dt = DateTime.fromJSDate(arg.date);
+          return dt.toFormat('HH.mm')
         }}
-        eventTimeFormat={{
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: false
+        eventContent={(arg) => {
+          const event = arg.event;
+          const start = DateTime.fromJSDate(event.start).toFormat('HH.mm');
+          const end = event. end ? DateTime.fromJSDate(event.end).toFormat('HH.mm') : null;
+          return end ? `${start} - ${end}\n${event.title}` : `${start}\n${event.title}`;
         }}
         dayHeaderContent={(arg) => {
-          const dt = DateTime.fromJSDate(arg.date);
+          const dt = DateTime.fromJSDate(arg.date).setLocale('fi');
           return dt.toFormat('EEE dd.MM.')
         }}
       />

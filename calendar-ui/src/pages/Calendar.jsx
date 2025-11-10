@@ -22,6 +22,8 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
+import luxonPlugin from "@fullcalendar/luxon3";
+import { DateTime } from 'luxon';
 import { getUsername, getActiveProfile, colorize, DEFAULT_COLORS } from "./calendarUtils.js";
 import Legend from "./Legend.jsx";
 import ProfileHeader from "./ProfileHeader.jsx";
@@ -297,11 +299,12 @@ export default function Calendar() {
 
       <FullCalendar
         ref={calRef}
-        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, luxonPlugin]}
         initialView="timeGridWeek"
         height="78vh"
         events={displayedEvents}
         firstDay={1}
+        titleFormat='dd.MM.yyyy'
         slotLabelFormat={{
           hour: '2-digit',
           minute: '2-digit',
@@ -311,6 +314,10 @@ export default function Calendar() {
           hour: '2-digit',
           minute: '2-digit',
           hour12: false
+        }}
+        dayHeaderContent={(arg) => {
+          const dt = DateTime.fromJSDate(arg.date);
+          return dt.toFormat('EEE dd.MM.')
         }}
       />
     </div>

@@ -56,11 +56,12 @@ export default function ControlButtons({ sources, setSources, loading, hasUrls, 
           Tallenna URLit
         </button>
 
+        {/*
         <button onClick={onLoadSaved} style={{ height: 36 }}>
           Lataa tallennetut
         </button>
+        */}
       </div>
-
       <div>
         <button onClick={handleAddSource} style={{ height: 36 }}>
           Lisää lähde

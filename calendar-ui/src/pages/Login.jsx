@@ -18,45 +18,91 @@ export default function Login() {
     const [newProfileName, setNewProfileName] = useState("");
     const API = "http://localhost:3001"; // backendin osoite 
 
-    // Lataa profiilit localStoragesta
+    // Lataa profiilit palvelimelta (tai localStoragesta, jos palvelin ei vastaa)
     useEffect(() => {
-        const savedProfiles = localStorage.getItem("profiles");
-        const savedActiveProfile = localStorage.getItem("activeProfile");
-        
-        if (savedProfiles) {
+        const load = async () => {
             try {
-                const parsedProfiles = JSON.parse(savedProfiles);
-                setProfiles(parsedProfiles);
-                
+                const res = await fetch(`${API}/profiles`);
+                if (!res.ok) throw new Error('Failed fetching profiles');
+                const list = await res.json();
+                setProfiles(list || []);
+
+                // säilytä aiemmin valittu aktiivinen profiili paikallisesti
+                const savedActiveProfile = localStorage.getItem("activeProfile");
                 if (savedActiveProfile) {
-                    const active = parsedProfiles.find(p => p.id === savedActiveProfile);
+                    const active = (list || []).find(p => String(p.id) === String(savedActiveProfile));
                     if (active) {
                         setActiveProfile(active);
                         setUsername(active.username);
                     }
                 }
             } catch (e) {
-                console.error("Virhe profiilien lataamisessa:", e);
+                console.error("Virhe profiilien lataamisessa palvelimelta, käytetään localStorage:", e.message);
+                const savedProfiles = localStorage.getItem("profiles");
+                const savedActiveProfile = localStorage.getItem("activeProfile");
+                if (savedProfiles) {
+                    try {
+                        const parsedProfiles = JSON.parse(savedProfiles);
+                        setProfiles(parsedProfiles);
+                            if (savedActiveProfile) {
+                                const active = parsedProfiles.find(p => String(p.id) === String(savedActiveProfile));
+                                if (active) {
+                                    setActiveProfile(active);
+                                    setUsername(active.username);
+                                }
+                            }
+                    } catch (e2) {
+                        console.error("Virhe localStorage-profiilien lataamisessa:", e2);
+                    }
+                }
             }
-        }
+        };
+        load();
     }, []);
 
     // Profiilin lisääminen
     function addProfile(name) {
         if (!name.trim()) return;
-        
-        const newProfile = {
-            id: Date.now().toString(),
-            name: name.trim(),
-            username: name.trim(),
-            createdAt: new Date().toISOString()
-        };
-        
-        const updatedProfiles = [...profiles, newProfile];
-        setProfiles(updatedProfiles);
-        localStorage.setItem("profiles", JSON.stringify(updatedProfiles));
-        setNewProfileName("");
-        setShowAddProfile(false);
+        const payload = { name: name.trim(), username: name.trim() };
+        (async () => {
+            try {
+                const res = await fetch(`${API}/profiles`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!res.ok) throw new Error('Failed creating profile');
+                const resp = await res.json();
+                // resp may be a single created profile or the full list
+                let updatedProfiles = Array.isArray(resp) ? resp : [resp];
+                // if server returned only created profile, merge with current list
+                if (updatedProfiles.length === 1) {
+                    updatedProfiles = [...profiles, updatedProfiles[0]];
+                }
+                setProfiles(updatedProfiles);
+                // store a local copy as fallback
+                localStorage.setItem("profiles", JSON.stringify(updatedProfiles));
+                // mark newly created profile as active
+                let created = null;
+                if (Array.isArray(resp) && resp.length === 1) created = resp[0];
+                if (!created) created = updatedProfiles.find(p => String(p.username) === String(payload.username)) || updatedProfiles[updatedProfiles.length - 1];
+                if (created) {
+                    setActiveProfile(created);
+                    setUsername(created.username);
+                    localStorage.setItem("activeProfile", String(created.id));
+                }
+                setNewProfileName("");
+                setShowAddProfile(false);
+            } catch (err) {
+                console.error('Lisäyksessä virhe, tallennetaan localStorageen:', err.message);
+                const newProfile = { id: Date.now().toString(), name: name.trim(), username: name.trim(), createdAt: new Date().toISOString() };
+                const updatedProfiles = [...profiles, newProfile];
+                setProfiles(updatedProfiles);
+                localStorage.setItem("profiles", JSON.stringify(updatedProfiles));
+                // set local fallback profile active
+                setActiveProfile(newProfile);
+                setUsername(newProfile.username);
+                localStorage.setItem("activeProfile", newProfile.id);
+                setNewProfileName("");
+                setShowAddProfile(false);
+            }
+        })();
     }
 
     // Profiilin valitseminen
@@ -68,15 +114,30 @@ export default function Login() {
 
     // Profiilin poistaminen
     function deleteProfile(profileId) {
-        const updatedProfiles = profiles.filter(p => p.id !== profileId);
-        setProfiles(updatedProfiles);
-        localStorage.setItem("profiles", JSON.stringify(updatedProfiles));
-        
-        if (activeProfile && activeProfile.id === profileId) {
-            setActiveProfile(null);
-            setUsername("");
-            localStorage.removeItem("activeProfile");
-        }
+        (async () => {
+            try {
+                const res = await fetch(`${API}/profiles/${profileId}`, { method: 'DELETE' });
+                if (!res.ok) throw new Error('Failed deleting profile');
+                const list = await res.json();
+                setProfiles(list || []);
+                localStorage.setItem("profiles", JSON.stringify(list || []));
+                if (activeProfile && String(activeProfile.id) === String(profileId)) {
+                    setActiveProfile(null);
+                    setUsername("");
+                    localStorage.removeItem("activeProfile");
+                }
+            } catch (err) {
+                console.error('Poistossa virhe, päivitetään paikallisesti:', err.message);
+                const updatedProfiles = profiles.filter(p => p.id !== profileId);
+                setProfiles(updatedProfiles);
+                localStorage.setItem("profiles", JSON.stringify(updatedProfiles));
+                if (activeProfile && String(activeProfile.id) === String(profileId)) {
+                    setActiveProfile(null);
+                    setUsername("");
+                    localStorage.removeItem("activeProfile");
+                }
+            }
+        })();
     } 
 
 
@@ -167,9 +228,10 @@ export default function Login() {
                 {profiles.length > 0 && (
                     <div style={{ marginBottom: 10 }}>
                         <select 
-                            value={activeProfile?.id || ""}
+                            value={String(activeProfile?.id || "")}
                             onChange={(e) => {
-                                const profile = profiles.find(p => p.id === e.target.value);
+                                const val = String(e.target.value);
+                                const profile = profiles.find(p => String(p.id) === val);
                                 if (profile) selectProfile(profile);
                             }}
                             style={{ width: "100%", padding: 8, marginBottom: 8 }}

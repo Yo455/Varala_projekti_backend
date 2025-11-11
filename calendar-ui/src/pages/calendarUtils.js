@@ -30,7 +30,8 @@ export function getActiveProfile() {
   try {
     const profiles = JSON.parse(localStorage.getItem("profiles") || "[]");
     const activeId = localStorage.getItem("activeProfile");
-    return profiles.find(p => p.id === activeId) || null;
+    if (!activeId) return null;
+    return profiles.find(p => String(p.id) === String(activeId)) || null;
   } catch (error) {
     console.warn("Virhe aktiivisen profiilin haussa localStoragesta:", error);
     return null;

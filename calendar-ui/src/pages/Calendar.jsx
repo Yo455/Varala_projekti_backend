@@ -22,6 +22,8 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
+import luxonPlugin from "@fullcalendar/luxon3";
+import { DateTime } from 'luxon';
 import { getUsername, getActiveProfile, colorize, DEFAULT_COLORS } from "./calendarUtils.js";
 import Legend from "./Legend.jsx";
 import ProfileHeader from "./ProfileHeader.jsx";
@@ -271,7 +273,7 @@ export default function Calendar() {
   ];
 
   return (
-    <div style={{ padding: 16, maxWidth: 1100, margin: "0 auto" }}>
+    <div style={{ padding: 16, maxWidth: 1100, margin: "0 auto", whiteSpace: 'pre-line' }}>
 
       <ProfileHeader
         activeProfile={activeProfile}
@@ -297,20 +299,25 @@ export default function Calendar() {
 
       <FullCalendar
         ref={calRef}
-        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, luxonPlugin]}
         initialView="timeGridWeek"
         height="78vh"
         events={displayedEvents}
         firstDay={1}
-        slotLabelFormat={{
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: false
+        titleFormat='dd.MM.yyyy'
+        slotLabelContent={(arg) => {
+          const dt = DateTime.fromJSDate(arg.date);
+          return dt.toFormat('HH.mm')
         }}
-        eventTimeFormat={{
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: false
+        eventContent={(arg) => {
+          const event = arg.event;
+          const start = DateTime.fromJSDate(event.start).toFormat('HH.mm');
+          const end = event. end ? DateTime.fromJSDate(event.end).toFormat('HH.mm') : null;
+          return end ? `${start} - ${end}\n${event.title}` : `${start}\n${event.title}`;
+        }}
+        dayHeaderContent={(arg) => {
+          const dt = DateTime.fromJSDate(arg.date).setLocale('fi');
+          return dt.toFormat('EEE dd.MM.')
         }}
       />
     </div>

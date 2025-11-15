@@ -25,7 +25,6 @@ import interactionPlugin from "@fullcalendar/interaction";
 import luxonPlugin from "@fullcalendar/luxon3";
 import { DateTime } from 'luxon';
 import { getUsername, getActiveProfile, colorize, DEFAULT_COLORS } from "./calendarUtils.js";
-import Legend from "./Legend.jsx";
 import ProfileHeader from "./ProfileHeader.jsx";
 import UrlInputs from "./UrlInputs.jsx";
 import ControlButtons from "./ControlButtons.jsx";
@@ -198,7 +197,7 @@ export default function Calendar() {
             return [];
           }
           const events = await res.json();
-          return (Array.isArray(events) ? events : []).map((e) => ({ ...e, eventColor: s.color || DEFAULT_COLORS[0] }));
+          return (Array.isArray(events) ? events : []).map((e) => ({ ...e, backgroundColor: s.color, borderColor: s.color, }));
         } catch (error) {
           console.error("Hakuvirhe URL:lle", s.url, error);
           return [];

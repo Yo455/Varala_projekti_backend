@@ -3,3 +3,15 @@
 :root {
   --color: #{v.$event1};
 }
+
+.profile-avatar, .profile {
+  flex: 0 0 20%;
+  max-width: 200px;
+  height: auto;
+}
+
+.frontpage {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+}

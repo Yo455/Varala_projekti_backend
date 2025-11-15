@@ -191,7 +191,7 @@ export default function Login() {
                 localStorage.setItem("activeProfile", activeProfile.id);
             }
 
-            navigate("/calendar", { replace: true });
+            navigate("/frontpage", { replace: true });
 
         } catch (err) {
 

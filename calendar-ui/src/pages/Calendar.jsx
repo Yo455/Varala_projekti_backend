@@ -272,7 +272,7 @@ export default function Calendar() {
   ];
 
   return (
-    <div style={{ padding: 16, maxWidth: 1100, margin: "0 auto", whiteSpace: 'pre-line' }}>
+    <div style={{ padding: 5, width: '100%', margin: "0 auto", whiteSpace: 'pre-line', flex: 1 }}>
 
       <ProfileHeader
         activeProfile={activeProfile}

@@ -6,7 +6,7 @@
  */
 
 // Oletusväripaletti kalenterilähteille
-export const DEFAULT_COLORS = ["#1e90ff", "#2ecc71", "#f39c12", "#9b59b6", "#e74c3c"];
+export const DEFAULT_COLORS = ["var(--color)", "#2ecc71", "#f39c12", "#9b59b6", "#e74c3c"];
 
 /**
  * Hakee aktiivisen käyttäjänimen localStoragesta

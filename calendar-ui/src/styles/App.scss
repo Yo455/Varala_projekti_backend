@@ -1,0 +1,5 @@
+@use 'variables' as v;
+
+:root {
+  --color: #{v.$event1};
+}

@@ -1,4 +1,3 @@
-import '../styles/ProfileCard.scss'
 import profileImage from '../assets/pekka.png'
 import { getUsername } from './calendarUtils';
 

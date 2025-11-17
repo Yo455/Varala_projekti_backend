@@ -272,7 +272,7 @@ export default function Calendar() {
   ];
 
   return (
-    <div style={{ padding: 5, width: '100%', margin: "0 auto", whiteSpace: 'pre-line', flex: 1 }}>
+    <div className="display-events">
 
       <ProfileHeader
         activeProfile={activeProfile}
@@ -281,7 +281,7 @@ export default function Calendar() {
 
       <h2>Kalenteri-demo (ICS → FullCalendar)</h2>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 8, alignItems: "center", marginBottom: 12 }}>
+      <div className="calendar-header">
         <UrlInputs sources={sources} setSources={setSources} onLoad={load} />
 
         <ControlButtons

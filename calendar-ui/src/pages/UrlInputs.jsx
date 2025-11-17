@@ -56,11 +56,11 @@ export default function UrlInputs({ sources, setSources, onLoad }) {
   };
 
   return (
-    <div style={{ display: "grid", gap: 8 }}>
+    <div className="sources-list">
       {sources.map((s, i) => (
-        <div key={i} style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          <div style={{ flex: 1 }}>
-            <label style={{ fontSize: 12 }}>{`ICS URL ${i + 1}`}</label>
+        <div key={i} className="sources-row">
+          <div className="url-input">
+            <label>{`ICS URL ${i + 1}`}</label>
             <input
               placeholder="https://…/calendar.ics"
               value={s.url}
@@ -68,7 +68,7 @@ export default function UrlInputs({ sources, setSources, onLoad }) {
               style={{ width: "100%" }}
             />
           </div>
-          <div style={{ display: "flex", gap: 6 }}>
+          <div>
             <button
               title="Poista lähde ja sen tallennus palvelimelta"
               onClick={() => handleDeleteSource(i)}

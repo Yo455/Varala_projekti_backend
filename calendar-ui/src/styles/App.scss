@@ -1,17 +1,84 @@
 @use 'variables' as v;
+@use 'mixins';
 
+/* CSS variables to :root */
 :root {
-  --color: #{v.$event1};
+  @include mixins.css-vars(v.$colors);
 }
 
-.profile-avatar, .profile {
+body {
+  background: var(--bg);
+}
+
+/* Profile picture and profile */
+.profile-avatar,
+.profile {
   flex: 0 0 20%;
   max-width: 200px;
   height: auto;
 }
 
+/* Lay out of front page */
 .frontpage {
-  display: flex;
-  align-items: flex-start;
+  @include mixins.flex-row(flex-start);
   gap: 5px;
+}
+
+/* FullCalendar styles */
+.fc {
+  --fc-border-color: var(--black);
+  --fc-today-bg-color: var(--bg);
+
+  .fc-event {
+    overflow-wrap: break-word;
+    overflow: hidden;
+  }
+}
+
+/* Events */
+.display-events {
+  padding: 5;
+  width: 100%;
+  margin: 0 auto;
+  white-space: wrap;
+  flex: 1;
+}
+
+/* Header of the calendar page */
+.calendar-header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+/* Layout for URL and buttons */
+.sources-list {
+  display: grid;
+  gap: 8px;
+
+  .sources-row {
+    @include mixins.flex-row(flex-end);
+
+    .url-input {
+      flex: 1;
+      @include mixins.flex-col;
+
+      label {
+        font-size: 12px;
+      }
+
+      input {
+        height: 20px;
+        font-size: 12px;
+      }
+    }
+    
+    button {
+      height: 30px;
+      padding: 0 12px;
+      margin-left: 20px;
+    }
+  }
 }

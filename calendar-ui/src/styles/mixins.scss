@@ -1,0 +1,21 @@
+/* Create CSS-variables to :root */
+@mixin css-vars($map) {
+  @each $name, $value in $map {
+    --#{"" + $name}: #{$value};
+  }
+}
+
+/* Flex container for rows */
+@mixin flex-row($align: center, $justify: flex-start) {
+    display: flex;
+    align-items: $align;
+    justify-content: $justify;
+}
+
+/* Flex container for columns */
+@mixin flex-col($align: stretch, $justify: flex-start) {
+    display: flex;
+    flex-direction: column;
+    align-items: $align;
+    justify-content: $justify;
+}

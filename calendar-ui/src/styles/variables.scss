@@ -1,1 +1,11 @@
-$event1: #ed22b0;
+$primary-color: #3D57AD;
+$secondary-color: #001A72;
+$background: #CCE0FE;
+$black: #000000;
+
+$colors: (
+    pcolor: $primary-color,
+    scolor: $secondary-color,
+    bg: $background,
+    black: $black
+);

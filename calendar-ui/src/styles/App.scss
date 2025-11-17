@@ -121,3 +121,31 @@ body {
     }
   }
 }
+
+/* Navigation */
+.navigation {
+  @include mixins.flex-row(flex-start);
+  gap: 20px;
+  padding: 15px 25px;
+  background: v.$secondary-color;
+  border-radius: 8px;
+  margin: 20px;
+
+  a {
+    color: white;
+    text-decoration: none;
+    font-size: 18px;
+    padding: 8px 14px;
+    border-radius: 6px;
+
+    transition: background 0.2s ease, color 0.2s ease;
+
+    &.active {
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+  }
+}

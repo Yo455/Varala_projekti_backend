@@ -15,20 +15,28 @@ export default function UrlInputs({ sources, setSources, onLoad }) {
     const counts = {};
     for (const s of sources) {
       const u = (s?.url || "").trim().toLowerCase();
+      // Normalisoi URL (trim + lower), jotta duplikaattitarkistus on kirjainkoosta riippumaton ja ylimääräiset välilyönnit poistuvat
       if (!u) continue;
       counts[u] = (counts[u] || 0) + 1;
+      // Laske esiintymät
     }
     const duplicates = Object.keys(counts).filter((k) => counts[k] > 1);
+    // Jos duplikaatteja löytyy, näytä alert. filteröi avaimet, joiden arvo on suurempi kuin 1, eli esiintyy useammin kuin kerran.
+    //Object.keys palauttaa taulukon, jossa on kaikki counts-olion avaimet.
     if (duplicates.length > 0) {
       // Kerrotaan käyttäjälle, että sama osoite löytyy useammin kuin kerran
       alert(`Sama URL löytyy useamman kerran: ${duplicates.join(", ")}`);
     }
   }, [sources]);
 
+  // Poista URL-osoite palvelimelta ja päivitä UI
   const handleDeleteSource = async (index) => {
     const source = sources[index];
-    const urlToDelete = source.url?.trim();
+    //sources on objekti, josta poistetaan url ja id, index on poistettavan kohdan indeksi
+    const urlToDelete = source.url?.trim().toLowerCase();
+    // Normalisoi URL (trim + lower), jotta poisto on kirjainkoosta riippumaton ja ylimääräiset välilyönnit poistuvat
     const idToDelete = source.id;
+    //idToDelete on palvelimen antama tunniste, jota käytetään poiston kohdistamiseen, sourc
 
     // Jos URL tai ID puuttuu, poista vain paikallisesti
     if (!urlToDelete && !idToDelete) {
@@ -46,18 +54,20 @@ export default function UrlInputs({ sources, setSources, onLoad }) {
 
     try {
       const remaining = sources.filter((_, idx) => idx !== index);
+      // Lähetä DELETE-pyyntö palvelimelle, nuolifunktion avulla
       const body = idToDelete ? { id: idToDelete } : { url: urlToDelete };
 
       console.log("Poistetaan URL palvelimelta:", body);
       const res = await fetch(`${API}/urls`, {
         method: "DELETE",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" }, //json-header
         body: JSON.stringify({ ...body, user: getUsername() }),
       });
 
-      if (!res.ok) {
+      if (!res.ok) { // Tarkista vastaus
         const errorText = await res.text();
         throw new Error(`Poisto epäonnistui: ${res.status} - ${errorText}`);
+        //heitä virhe, jos poisto epäonnistuu
       }
 
       // Päivitä UI
@@ -68,6 +78,7 @@ export default function UrlInputs({ sources, setSources, onLoad }) {
       console.log("URL poistettu onnistuneesti");
     } catch (error) {
       console.error("Virhe URL:n poistossa:", error);
+      // Näytä virheilmoitus käyttäjälle konsoliin
       alert(`URL:n poisto epäonnistui: ${error.message}`);
     }
   };

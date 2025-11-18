@@ -1,11 +1,11 @@
 import Calendar from './Calendar';
 import ProfileCard from './ProfileCard';
-import Navigation from '../routes/Navigation'
+import Section from '../routes/Section'
 
 export default function FrontPage() {
   return (
     <div className="frontpage">
-      <Navigation />
+      <Section />
       <ProfileCard />
       <Calendar />
     </div>

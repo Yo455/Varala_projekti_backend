@@ -148,4 +148,32 @@ body {
       background: rgba(255, 255, 255, 0.15);
     }
   }
+
+}
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+  width: 200px;
+  background: v.$secondary-color;
+  border-radius: 10px;
+
+  a {
+    color: white;
+    font-size: 16px;
+    text-decoration: none;
+    padding: 10px 14px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    &.active {
+      text-decoration: underline;
+      text-underline-offset: 4px;
+    }
+  }
 }

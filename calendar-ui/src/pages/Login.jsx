@@ -148,25 +148,26 @@ export default function Login() {
 
         setErrorMessage("");
 
-
-
         if (!username.trim()) {
-
             setErrorMessage("Käyttäjätunnus on pakollinen.");
-
             return;
-
         }
 
         if (!password.trim()) {
-
             setErrorMessage("Salasana on pakollinen.");
-
             return;
-
         }
 
+        // Varmista, että aktiivinen profiili on valittu ja sen käyttäjätunnus vastaa syötettyä
+        if (!activeProfile) {
+            setErrorMessage("Valitse profiili ennen kirjautumista.");
+            return;
+        }
 
+        if (String(activeProfile.username).trim() !== username.trim()) {
+            setErrorMessage("Käyttäjätunnus ei vastaa valittua profiilia.");
+            return;
+        }
 
         setLoading(true);
 
@@ -180,18 +181,13 @@ export default function Login() {
 
             localStorage.setItem("auth", JSON.stringify(auth));
 
-            // Päivitä aktiivinen profiili jos se löytyy
+            // Älä muokkaa profiilin username-arvoa kirjautuessa. Varmistettiin aiemmin, että
+            // syötetty käyttäjätunnus vastaa aktiivisen profiilin usernamea.
             if (activeProfile) {
-                const updatedProfile = { ...activeProfile, username: username.trim() };
-                const updatedProfiles = profiles.map(p => 
-                    p.id === activeProfile.id ? updatedProfile : p
-                );
-                setProfiles(updatedProfiles);
-                localStorage.setItem("profiles", JSON.stringify(updatedProfiles));
                 localStorage.setItem("activeProfile", activeProfile.id);
             }
 
-            navigate("/calendar", { replace: true });
+            navigate("/frontpage", { replace: true });
 
         } catch (err) {
 

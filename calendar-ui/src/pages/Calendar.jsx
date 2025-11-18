@@ -25,7 +25,6 @@ import interactionPlugin from "@fullcalendar/interaction";
 import luxonPlugin from "@fullcalendar/luxon3";
 import { DateTime } from 'luxon';
 import { getUsername, getActiveProfile, colorize, DEFAULT_COLORS } from "./calendarUtils.js";
-import Legend from "./Legend.jsx";
 import ProfileHeader from "./ProfileHeader.jsx";
 import UrlInputs from "./UrlInputs.jsx";
 import ControlButtons from "./ControlButtons.jsx";
@@ -198,7 +197,7 @@ export default function Calendar() {
             return [];
           }
           const events = await res.json();
-          return (Array.isArray(events) ? events : []).map((e) => ({ ...e, eventColor: s.color || DEFAULT_COLORS[0] }));
+          return (Array.isArray(events) ? events : []).map((e) => ({ ...e, backgroundColor: s.color, borderColor: s.color, }));
         } catch (error) {
           console.error("Hakuvirhe URL:lle", s.url, error);
           return [];
@@ -273,7 +272,7 @@ export default function Calendar() {
   ];
 
   return (
-    <div style={{ padding: 16, maxWidth: 1100, margin: "0 auto", whiteSpace: 'pre-line' }}>
+    <div className="display-events">
 
       <ProfileHeader
         activeProfile={activeProfile}
@@ -282,7 +281,7 @@ export default function Calendar() {
 
       <h2>Kalenteri-demo (ICS → FullCalendar)</h2>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 8, alignItems: "center", marginBottom: 12 }}>
+      <div className="calendar-header">
         <UrlInputs sources={sources} setSources={setSources} onLoad={load} />
 
         <ControlButtons

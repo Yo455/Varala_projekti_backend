@@ -1,3 +1,4 @@
+import React, { useEffect } from "react";
 import { getUsername } from "./calendarUtils.js";
 
 /**
@@ -7,6 +8,22 @@ import { getUsername } from "./calendarUtils.js";
  */
 export default function UrlInputs({ sources, setSources, onLoad }) {
   const API = "http://localhost:3001";
+
+  // Tarkista duplikaatit — jos sama URL esiintyy useammin kuin kerran, näytä alert
+  useEffect(() => {
+    if (!Array.isArray(sources) || sources.length === 0) return;
+    const counts = {};
+    for (const s of sources) {
+      const u = (s?.url || "").trim().toLowerCase();
+      if (!u) continue;
+      counts[u] = (counts[u] || 0) + 1;
+    }
+    const duplicates = Object.keys(counts).filter((k) => counts[k] > 1);
+    if (duplicates.length > 0) {
+      // Kerrotaan käyttäjälle, että sama osoite löytyy useammin kuin kerran
+      alert(`Sama URL löytyy useamman kerran: ${duplicates.join(", ")}`);
+    }
+  }, [sources]);
 
   const handleDeleteSource = async (index) => {
     const source = sources[index];
@@ -56,11 +73,11 @@ export default function UrlInputs({ sources, setSources, onLoad }) {
   };
 
   return (
-    <div style={{ display: "grid", gap: 8 }}>
+    <div className="sources-list">
       {sources.map((s, i) => (
-        <div key={i} style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          <div style={{ flex: 1 }}>
-            <label style={{ fontSize: 12 }}>{`ICS URL ${i + 1}`}</label>
+        <div key={i} className="sources-row">
+          <div className="url-input">
+            <label>{`ICS URL ${i + 1}`}</label>
             <input
               placeholder="https://…/calendar.ics"
               value={s.url}
@@ -68,7 +85,7 @@ export default function UrlInputs({ sources, setSources, onLoad }) {
               style={{ width: "100%" }}
             />
           </div>
-          <div style={{ display: "flex", gap: 6 }}>
+          <div>
             <button
               title="Poista lähde ja sen tallennus palvelimelta"
               onClick={() => handleDeleteSource(i)}

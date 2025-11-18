@@ -17,30 +17,32 @@ Sovellus hakee tapahtumat backendin kautta ja näyttää ne FullCalendarissa.
 
 Jos linkkejä ei anneta, näytetään demotapahtumat (Treeni ja Ottelu).
 
+Voi tallentaa eri profiileille omat lukujärjestykset
+
 🛠️ Asennus ja käynnistys
 
 1. Kloonaa projekti
 
     git clone https://github.com/Yo455/Varala_projekti_backend.git
 
-2. Kun olet kloonannut projektin, olet oletuksena main/master-haarassa. Tässä projektissa kehitys tapahtuu API-haarassa, joten vaihda siihen komennolla:
+    Oikeaan branchiin pääsee git checkout komennolla `git checkout <branchin nimi>`
 
-    git checkout API
+2. Asenna riippuvuudet
 
-    Ja tarkista että haara on oikea
+    npm install (asennus pitää tehdä alikansiossa Varala_projekti_backend)
 
-    git branch
-
-    Pitäisi näyttää tältä
-
-    * API
-      main
-
-3. Asenna riippuvuudet
-
-    npm install
 
 4. Käynnistä sovellus
 
-    npm start
+    npm start (käynnistys pitää tehdä alikansiossa Varala_projekti_backend)
+    ![Logo](pictures/npmstart.png)
+
+    selaimeen ohjelman saa auki localhost kohdasta seuraamalla linkkiä:
+    ![Logo](pictures/local.png)
+
+5. Tarkastele tietokantaa
+
+    Komennolla `docker exec -it my_postgres psql -U myuser -d mydb ` pääsee katsomaan tietokantaa komentokehotteen kautta.
+    Voi tarkastella tallennettuja url-linkkejä komennon ` select * from saved_urls; ` avulla.
+
 

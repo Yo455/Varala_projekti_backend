@@ -329,6 +329,61 @@ app.get("/urls", async (req, res) => {
   }
 });
 
+// -----------------------------------------------
+// Profiles endpoints
+// -----------------------------------------------
+// GET /profiles -> list all profiles
+app.get("/profiles", async (_req, res) => {
+  try {
+    console.log('[SERVER] GET /profiles called');
+    const rows = await db.getProfiles();
+    return res.json(rows);
+  } catch (err) {
+    console.error("GET /profiles failed:", err);
+    return res.status(500).json({ error: "Failed reading profiles" });
+  }
+});
+
+// POST /profiles -> add a new profile
+app.post("/profiles", async (req, res) => {
+  try {
+    const body = req.body || {};
+    console.log('[SERVER] POST /profiles body:', body);
+    const name = String(body.name || "").trim();
+    const username = String(body.username || "").trim();
+    if (!name || !username) return res.status(400).json({ error: "Missing name or username" });
+
+    const rows = await db.addProfile(name, username);
+    // If addProfile returned single created profile, return it; otherwise return full list
+    return res.json(rows);
+  } catch (err) {
+    console.error("POST /profiles failed:", err);
+    return res.status(500).json({ error: "Failed creating profile" });
+  }
+});
+
+// DELETE /profiles/:id -> delete profile by id
+app.delete("/profiles/:id", async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    console.log('[SERVER] DELETE /profiles/:id called for id=', id);
+    if (!Number.isFinite(id)) return res.status(400).json({ error: "Invalid id" });
+
+    // Try to find the profile first so we know the username to clean up saved_urls
+    const profile = await db.getProfileById(id);
+    if (profile && profile.username) {
+      console.log('[SERVER] Deleting saved_urls for username =', profile.username);
+      await db.removeUrlsByUser(profile.username);
+    }
+
+    const rows = await db.removeProfileById(id);
+    return res.json(rows);
+  } catch (err) {
+    console.error("DELETE /profiles/:id failed:", err);
+    return res.status(500).json({ error: "Failed deleting profile" });
+  }
+});
+
 // GET /events -> kolme tilannetta:
 //  - ei parametreja: demo-data
 //  - ?url=...      : hae ja palauta yhden ICS:n tapahtumat

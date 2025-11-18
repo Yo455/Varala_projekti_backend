@@ -21,6 +21,13 @@ async function init() {
     url TEXT NOT NULL,
     UNIQUE (user_name, url)
   );
+    
+  CREATE TABLE IF NOT EXISTS profiles (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    username TEXT NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT now()
+  );
 `);
     ready = true;
     console.log("✅ db.js: Postgres available, using DB-backed storage");
@@ -157,6 +164,99 @@ module.exports = {
   add,
   removeById,
   removeByUrl,
+  // profiles
+  getProfiles,
+  addProfile,
+  removeProfileById,
+  getProfileById,
+  removeUrlsByUser,
   // expose readiness for diagnostics
   ready: () => ready,
 };
+
+// -------------------------
+// Profiles functions
+// -------------------------
+async function getProfiles() {
+  if (!ready || !pool) {
+    console.warn("db.js getProfiles: Postgres not ready — returning empty list");
+    return [];
+  }
+  try {
+    const res = await pool.query("SELECT id, name, username, created_at FROM profiles ORDER BY id");
+    return res.rows.map((r) => ({ id: r.id, name: r.name, username: r.username, createdAt: r.created_at }));
+  } catch (err) {
+    console.warn("db.js getProfiles failed:", err.message);
+    return [];
+  }
+}
+
+async function addProfile(name, username) {
+  if (!name || !username) return await getProfiles();
+  if (!ready || !pool) {
+    console.warn("db.js addProfile: Postgres not ready — no-op");
+    return await getProfiles();
+  }
+  try {
+    const text = "INSERT INTO profiles(name, username) VALUES($1, $2) ON CONFLICT (username) DO NOTHING RETURNING id, name, username, created_at";
+    const res = await pool.query(text, [name, username]);
+    if (res.rows && res.rows.length > 0) {
+      const r = res.rows[0];
+      return [{ id: r.id, name: r.name, username: r.username, createdAt: r.created_at }];
+    }
+    // If nothing inserted (conflict), return full list
+    return await getProfiles();
+  } catch (err) {
+    console.warn("db.js addProfile failed:", err.message);
+    return await getProfiles();
+  }
+}
+
+async function removeProfileById(id) {
+  if (!id) return await getProfiles();
+  if (!ready || !pool) {
+    console.warn("db.js removeProfileById: Postgres not ready — no-op");
+    return await getProfiles();
+  }
+  try {
+    await pool.query("DELETE FROM profiles WHERE id = $1", [id]);
+    return await getProfiles();
+  } catch (err) {
+    console.warn("db.js removeProfileById failed:", err.message);
+    return await getProfiles();
+  }
+}
+
+async function getProfileById(id) {
+  if (!id) return null;
+  if (!ready || !pool) {
+    console.warn("db.js getProfileById: Postgres not ready — returning null");
+    return null;
+  }
+  try {
+    const res = await pool.query("SELECT id, name, username, created_at FROM profiles WHERE id = $1 LIMIT 1", [id]);
+    if (res.rows && res.rows.length > 0) {
+      const r = res.rows[0];
+      return { id: r.id, name: r.name, username: r.username, createdAt: r.created_at };
+    }
+    return null;
+  } catch (err) {
+    console.warn("db.js getProfileById failed:", err.message);
+    return null;
+  }
+}
+
+async function removeUrlsByUser(user) {
+  if (!user) return await getAll(user);
+  if (!ready || !pool) {
+    console.warn("db.js removeUrlsByUser: Postgres not ready — no-op");
+    return await getAll(user);
+  }
+  try {
+    await pool.query("DELETE FROM saved_urls WHERE user_name = $1", [user]);
+    return await getAll(user);
+  } catch (err) {
+    console.warn("db.js removeUrlsByUser failed:", err.message);
+    return await getAll(user);
+  }
+}

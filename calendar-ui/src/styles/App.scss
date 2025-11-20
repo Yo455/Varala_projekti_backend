@@ -282,3 +282,14 @@ body {
     @include mixins.buttons;
   }
 }
+
+/*=========================================
+  Source checkboxes
+ =========================================*/
+.checkbox-legend {
+ display: inline-flex;
+ align-items: center;
+ vertical-align: middle;
+ gap: 5px;
+ margin: 5px;
+}

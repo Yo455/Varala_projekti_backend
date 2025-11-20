@@ -19,3 +19,18 @@
     align-items: $align;
     justify-content: $justify;
 }
+
+@mixin text($color: white, $fontsize: 16px) {
+  color: $color;
+  font-size: $fontsize;
+  text-decoration: none;
+}
+
+@mixin buttons($color: white) {
+  background-color: $color;
+  height: 36px;
+  border: none;
+  border-radius: 4px;
+  padding: 0 12px;
+  cursor: pointer;
+}

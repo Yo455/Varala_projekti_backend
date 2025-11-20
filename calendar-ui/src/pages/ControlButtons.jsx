@@ -46,13 +46,13 @@ export default function ControlButtons({ sources, setSources, loading, hasUrls, 
   };
 
   return (
-    <div style={{ display: "flex", gap: 8 }}>
-      <div style={{ display: "inline-flex", gap: 8 }}>
-        <button onClick={() => onLoad()} disabled={loading} style={{ height: 36 }}>
+    <div className="control-buttons">
+      <div>
+        <button onClick={() => onLoad()} disabled={loading}>
           {loading ? "Ladataan…" : hasUrls ? "Hae kalenterit" : "Näytä demodata"}
         </button>
 
-        <button onClick={handleSaveUrls} style={{ height: 36 }}>
+        <button onClick={handleSaveUrls}>
           Tallenna URLit
         </button>
 
@@ -63,7 +63,7 @@ export default function ControlButtons({ sources, setSources, loading, hasUrls, 
         */}
       </div>
       <div>
-        <button onClick={handleAddSource} style={{ height: 36 }}>
+        <button onClick={handleAddSource}>
           Lisää lähde
         </button>
       </div>

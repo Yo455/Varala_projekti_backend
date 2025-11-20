@@ -279,8 +279,6 @@ export default function Calendar() {
         onLogout={handleLogout}
       />
 
-      <h2>Kalenteri-demo (ICS → FullCalendar)</h2>
-
       <div className="calendar-header">
         <UrlInputs sources={sources} setSources={setSources} onLoad={load} />
 

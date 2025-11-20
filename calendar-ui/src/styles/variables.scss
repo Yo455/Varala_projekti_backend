@@ -3,11 +3,13 @@ $secondary-color: #001A72;
 $background: #CCE0FE;
 $black: #000000;
 $red: #dc3545;
+$green: #28a745;
 
 $colors: (
     pcolor: $primary-color,
     scolor: $secondary-color,
     bg: $background,
     black: $black,
-    red: $red
+    red: $red,
+    green: $green
 );

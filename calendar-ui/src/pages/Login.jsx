@@ -143,9 +143,7 @@ export default function Login() {
 
 
     async function handleSubmit(e) {
-
         e.preventDefault();
-
         setErrorMessage("");
 
         if (!username.trim()) {
@@ -172,57 +170,38 @@ export default function Login() {
         setLoading(true);
 
         try {
-
             // Mock-kirjautuminen — luodaan token ja tallennetaan käyttäjänimi localStorageen 
-
             const token = "mock-token-" + Math.random().toString(36).slice(2);
-
             const auth = { token, user: { username: username.trim() } };
-
             localStorage.setItem("auth", JSON.stringify(auth));
-
             // Älä muokkaa profiilin username-arvoa kirjautuessa. Varmistettiin aiemmin, että
             // syötetty käyttäjätunnus vastaa aktiivisen profiilin usernamea.
             if (activeProfile) {
                 localStorage.setItem("activeProfile", activeProfile.id);
             }
-
             navigate("/frontpage", { replace: true });
-
         } catch (err) {
-
             if (err.name === "QuotaExceededError") {
-
                 setErrorMessage("LocalStorage on täynnä. Tyhjennä selaimen dataa.");
-
             } else {
-
                 setErrorMessage("Kirjautuminen epäonnistui teknisen virheen vuoksi.");
-
             }
-
         } finally {
-
             setLoading(false);
-
         }
-
     }
 
 
 
     return (
-
-        <div style={{ padding: 20, maxWidth: 480 }}>
-
+        <div className="login">
             <h2>Kirjaudu</h2>
-
             {/* Profiilivalikko */}
-            <div style={{ marginBottom: 20 }}>
-                <h3 style={{ marginBottom: 10 }}>Profiilit</h3>
+            <div>
+                <h3>Profiilit</h3>
                 
                 {profiles.length > 0 && (
-                    <div style={{ marginBottom: 10 }}>
+                    <div className="profile-select">
                         <select 
                             value={String(activeProfile?.id || "")}
                             onChange={(e) => {
@@ -230,7 +209,6 @@ export default function Login() {
                                 const profile = profiles.find(p => String(p.id) === val);
                                 if (profile) selectProfile(profile);
                             }}
-                            style={{ width: "100%", padding: 8, marginBottom: 8 }}
                         >
                             <option value="">Valitse profiili...</option>
                             {profiles.map(profile => (
@@ -243,14 +221,6 @@ export default function Login() {
                         {activeProfile && (
                             <button 
                                 onClick={() => deleteProfile(activeProfile.id)}
-                                style={{ 
-                                    padding: "4px 8px", 
-                                    backgroundColor: "#dc3545", 
-                                    color: "white", 
-                                    border: "none", 
-                                    borderRadius: 4,
-                                    cursor: "pointer"
-                                }}
                             >
                                 Poista profiili
                             </button>
@@ -261,53 +231,27 @@ export default function Login() {
                 {!showAddProfile ? (
                     <button 
                         onClick={() => setShowAddProfile(true)}
-                        style={{ 
-                            padding: "8px 16px", 
-                            backgroundColor: "#28a745", 
-                            color: "white", 
-                            border: "none", 
-                            borderRadius: 4,
-                            cursor: "pointer"
-                        }}
                     >
                         Lisää uusi profiili
                     </button>
                 ) : (
-                    <div style={{ marginBottom: 10 }}>
+                    <div>
                         <input
                             type="text"
                             placeholder="Profiilin nimi"
                             value={newProfileName}
                             onChange={(e) => setNewProfileName(e.target.value)}
-                            style={{ width: "100%", padding: 8, marginBottom: 8 }}
                         />
                         <div>
-                            <button 
+                            <button
                                 onClick={() => addProfile(newProfileName)}
-                                style={{ 
-                                    padding: "4px 8px", 
-                                    backgroundColor: "#28a745", 
-                                    color: "white", 
-                                    border: "none", 
-                                    borderRadius: 4,
-                                    cursor: "pointer",
-                                    marginRight: 8
-                                }}
                             >
                                 Lisää
                             </button>
-                            <button 
+                            <button className="cancel"
                                 onClick={() => {
                                     setShowAddProfile(false);
                                     setNewProfileName("");
-                                }}
-                                style={{ 
-                                    padding: "4px 8px", 
-                                    backgroundColor: "#6c757d", 
-                                    color: "white", 
-                                    border: "none", 
-                                    borderRadius: 4,
-                                    cursor: "pointer"
                                 }}
                             >
                                 Peruuta
@@ -318,74 +262,40 @@ export default function Login() {
             </div>
 
             <form onSubmit={handleSubmit}>
-
-                <div style={{ marginBottom: 8 }}>
-
+                <div>
                     <input
-
                         type="text"  // 🔹 nyt vapaamuotoinen, ei email 
-
                         placeholder="Käyttäjätunnus"
-
                         value={username}
-
                         onChange={(e) => setUsername(e.target.value)}
-
                         required
-
-                        style={{ width: "100%", padding: 8 }}
-
                     />
-
                 </div>
 
-                <div style={{ marginBottom: 12 }}>
-
+                <div>
                     <input
-
                         type="password"
-
                         placeholder="Salasana"
-
                         value={password}
-
                         onChange={(e) => setPassword(e.target.value)}
-
                         required
-
-                        style={{ width: "100%", padding: 8 }}
-
                     />
-
                 </div>
 
                 {errorMessage && (
-
-                    <p style={{ color: "red", marginBottom: 12, fontSize: 14 }}>
-
+                    <p className="error">
                         {errorMessage}
-
                     </p>
-
                 )}
-
-                <button type="submit" disabled={loading} style={{ padding: "8px 16px", marginRight: 8 }}>
-
+                <button className="login-bt">
                     {loading ? "Kirjautuminen..." : "Kirjaudu"}
-
                 </button>
 
             </form>
-
-            <p style={{ marginTop: 12, fontSize: 13, color: "#666" }}>
-
+            <p>
                 Syötä vapaamuotoinen käyttäjätunnus ja salasana.
-
             </p>
-
         </div>
-
     );
-
 }
 

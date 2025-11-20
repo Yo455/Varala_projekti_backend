@@ -133,11 +133,12 @@ body {
  =========================================*/
 .control-buttons {
   @include mixins.flex-row;
+  margin-top: 12px;
 
    button {
     @include mixins.buttons;
     @include mixins.text($fontsize: 12px, $color: v.$black);
-    margin: 5px;
+    margin-left: 12px;
    }
 }
 

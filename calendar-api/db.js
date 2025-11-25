@@ -18,19 +18,22 @@ async function init() {
     try {
       pool = new Pool({ connectionString: DB_URL, ssl: useSSL });
       await pool.query("SELECT 1");
-      console.log("✅ Postgres ready");
       ready = true;
+      console.log("✅ Postgres ready");
       break;
     } catch (err) {
       attempts++;
-      console.warn(`⚠️ Postgres not ready yet (${attempts}/${maxRetries}):`, err.message);
+      // Only log first 1-2 attempts to avoid spam
+      if (attempts <= 2) {
+        console.warn(`⚠️ Waiting for Postgres (${attempts}/${maxRetries})...`);
+      }
       await new Promise((r) => setTimeout(r, 2000));
     }
   }
 
   if (!ready) {
-    console.warn("⚠️ Postgres unavailable, falling back to file storage");
     pool = null;
+    console.warn("⚠️ Postgres unavailable after retries — falling back to file storage");
   }
 }
 

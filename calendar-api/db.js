@@ -5,7 +5,7 @@ const { Pool } = require("pg");
 
 const DB_URL =
   process.env.DATABASE_URL ||
-  `postgres://${process.env.POSTGRES_USER || "myuser"}:${process.env.POSTGRES_PASSWORD || "mypassword"}@${process.env.PGHOST || "localhost"}:${process.env.PGPORT || "5438"}/${process.env.POSTGRES_DB || "mydb"}`;
+  `postgres://${process.env.POSTGRES_USER || "myuser"}:${process.env.POSTGRES_PASSWORD || "mypassword"}@${process.env.PGHOST || "db"}:${process.env.PGPORT || "5432"}/${process.env.POSTGRES_DB || "mydb"}`;
 
 const useSSL = process.env.DATABASE_URL ? { rejectUnauthorized: false } : false;
 let pool = null;
@@ -16,7 +16,7 @@ async function init() {
   try {
     pool = new Pool({
     connectionString: DB_URL,
-    ssl: useSSL ? { rejectUnauthorized: false } : false
+    ssl: useSSL
   });
 
     await pool.query("SELECT 1");

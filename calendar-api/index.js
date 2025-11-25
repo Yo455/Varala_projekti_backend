@@ -215,10 +215,12 @@ const express = require("express");
 const cors = require("cors");
 const ical = require("node-ical");
 const db = require("./db");
+const path = require("path");
 
 const app = express();
-app.use(cors());
 app.use(express.json());
+app.use(express.static(path.join(__dirname, "public")));
+app.use(cors());
 
 const COLORS = ["#1e90ff", "#2ecc71", "#f39c12", "#9b59b6", "#e74c3c"];
 
@@ -445,7 +447,7 @@ app.get("/", (req, res) => {
   res.send("API is running");
 });
 
-const path = require("path");
+
 
 // Serve React UI static files
 app.use(express.static(path.join(__dirname, "public")));

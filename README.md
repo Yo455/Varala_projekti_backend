@@ -39,6 +39,7 @@ Jos linkkejä ei anneta, näytetään demotapahtumat (Treeni ja Ottelu).
 4. Käynnistä sovellus
 
     Aja komento `npm start` (käynnistys pitää tehdä alikansiossa Varala_projekti_backend)
+
     ![Logo](pictures/npmstart.png)
 
     selaimeen ohjelman saa auki localhost kohdasta seuraamalla linkkiä:
@@ -49,45 +50,46 @@ Jos linkkejä ei anneta, näytetään demotapahtumat (Treeni ja Ottelu).
 
 ### Kirjautuminen
 
-    Ohjelman käynnistyttyä käyttäjä pääsee kirjautumisivulle:
-    ![Logo](pictures/login.png)
+Ohjelman käynnistyttyä käyttäjä pääsee kirjautumisivulle:  
+![Kirjautumisnäkymä](pictures/login.png)
 
-    Kirjautumissivulla voi lisätä ja poistaa profiileja:
-    ![alt text](pictures/loginnappi.png)
+Kirjautumissivulla voi lisätä ja poistaa profiileja:  
+![Lisää/poista profiileja](pictures/loginnappi.png)
 
-    Lisätyistä profiileista pääsee valitsemaan sen profiilin, jolla kirjaudutaan:
-    ![alt text](pictures/profiilit.png)
+Lisätyistä profiileista pääsee valitsemaan sen profiilin, jolla kirjaudutaan:  
+![Profiilien valinta](pictures/profiilit.png)
 
-    Kirjautumisnapilla pääsee kalenterinäkymään:
-    ![alt text](pictures/kirjaudu.png)
-    
-
-    
+Kirjautumisnapilla pääsee kalenterinäkymään:  
+![Kirjaudu](pictures/kirjaudu.png)
 
 ### Kalenterin käyttö
 
-    Kalenterinäkymässä näkyy profiilin opiskelija(placeholder) ja lukujärjestys:
-    ![alt text](pictures/opiskelijakortti.png)
+Kalenterinäkymässä näkyy profiilin opiskelija(placeholder) ja lukujärjestys:  
+![Opiskelijakortti](pictures/opiskelijakortti.png)
 
-    ![Logo](pictures/kalenteri.png)
+![Kalenteri](pictures/kalenteri.png)
 
-    Linkkejä pystyy lisäämään kalenterisivun ylälaidassa:
-    ![Logo](pictures/dash.png)
+Linkkejä pystyy lisäämään kalenterisivun ylälaidassa:  
+![Lisää lähde -näkymä](pictures/dash.png)
 
-    `Lisää lähde` painikkeella saa lisättyä lisää urleja = lisää kalentereita.
-
-
-
-
-    
+`Lisää lähde` painikkeella saa lisättyä lisää urleja = lisää kalentereita.
 
 ### Virheilmoitukset
 
+### Tarkastele tietokantaa
 
+Komennolla
 
- ### Tarkastele tietokantaa
+```bash
+docker exec -it my_postgres psql -U myuser -d mydb
+```
 
-    Komennolla `docker exec -it my_postgres psql -U myuser -d mydb ` pääsee katsomaan tietokantaa komentokehotteen kautta.
-    Voi tarkastella tallennettuja url-linkkejä komennon ` select * from saved_urls; ` avulla. **Pitää muistaa tallentaa urlit, ennen kuin ne näkyvät**
+pääsee katsomaan tietokantaa komentokehotteen kautta. Voi tarkastella tallennettuja url-linkkejä komennon
+
+```sql
+select * from saved_urls;
+```
+
+avulla. **Pitää muistaa tallentaa urlit, ennen kuin ne näkyvät**
 
 

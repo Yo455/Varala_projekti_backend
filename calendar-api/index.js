@@ -444,7 +444,7 @@ app.get("/health", async (_req, res) => {
 app.get("/", (req, res) => {
   res.send("API is running");
 });
-app.use("/api", router);
+
 const path = require("path");
 
 // Serve built UI from calendar-api/public

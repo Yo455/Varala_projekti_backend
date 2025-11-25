@@ -7,7 +7,6 @@ const DB_URL =
   process.env.DATABASE_URL ||
   `postgres://${process.env.POSTGRES_USER || "myuser"}:${process.env.POSTGRES_PASSWORD || "mypassword"}@${process.env.PGHOST || "db"}:${process.env.PGPORT || "5432"}/${process.env.POSTGRES_DB || "mydb"}`;
 
-const useSSL = process.env.DATABASE_URL ? { rejectUnauthorized: false } : false;
 let pool = null;
 let ready = false;
 

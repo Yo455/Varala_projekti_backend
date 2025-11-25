@@ -21,20 +21,12 @@ async function init() {
       ready = true;
       console.log("✅ Postgres ready");
       break;
-    } catch (err) {
+    } catch (_) {
       attempts++;
-      // Only log first 1-2 attempts to avoid spam
-      if (attempts <= 2) {
-        console.warn(`⚠️ Waiting for Postgres (${attempts}/${maxRetries})...`);
-      }
       await new Promise((r) => setTimeout(r, 2000));
     }
   }
 
-  if (!ready) {
-    pool = null;
-    console.warn("⚠️ Postgres unavailable after retries — falling back to file storage");
-  }
 }
 
 

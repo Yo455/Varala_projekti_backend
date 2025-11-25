@@ -447,12 +447,14 @@ app.get("/", (req, res) => {
 
 const path = require("path");
 
-// Serve built UI from calendar-api/public
+// Serve React UI static files
 app.use(express.static(path.join(__dirname, "public")));
 
-app.get("/*", (_req, res) => {
+// Catch-all route for React (must come AFTER all API routes)
+app.get("*", (_req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
+
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log("API running on", PORT));

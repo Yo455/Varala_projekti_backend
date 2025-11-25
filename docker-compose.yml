@@ -14,10 +14,11 @@ services:
       - ./postgres-data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "myuser"]
+      test: ["CMD", "pg_isready", "-U", "myuser", "-d", "mydb"]
       interval: 2s
       timeout: 2s
       retries: 10
+
 
   api:
     image: node:20

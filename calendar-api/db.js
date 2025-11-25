@@ -9,29 +9,56 @@ const DB_URL =
 let pool = null;
 let ready = false;
 
-async function init() {
+async function waitForDB(retries = 10, delay = 2000) {
   const useSSL = !!process.env.DATABASE_URL;
-  const maxRetries = 10;
-  let attempts = 0;
-
-  while (attempts < maxRetries) {
+  for (let i = 0; i < retries; i++) {
     try {
-      pool = new Pool({ connectionString: DB_URL, ssl: useSSL });
-      await pool.query("SELECT 1");
-      ready = true;
-      console.log("✅ Postgres ready");
-      break;
-    } catch (_) {
-      attempts++;
-      await new Promise((r) => setTimeout(r, 2000));
+      const testPool = new Pool({ connectionString: DB_URL, ssl: useSSL });
+      await testPool.query("SELECT 1");
+      await testPool.end();
+      console.log("✅ Postgres is ready");
+      return true;
+    } catch (err) {
+      console.log(`⚠️ Postgres not ready yet (${i + 1}/${retries}) - retrying in ${delay}ms`);
+      await new Promise((r) => setTimeout(r, delay));
     }
   }
 
+  throw new Error("❌ Postgres did not become ready in time");
+}
+async function init() {
+  try {
+    await waitForDB();
+    const useSSL = !!process.env.DATABASE_URL;
+    pool = new Pool({ connectionString: DB_URL, ssl: useSSL });
+
+    await pool.query("SELECT 1");
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS saved_urls (
+        id SERIAL PRIMARY KEY,
+        user_name TEXT NOT NULL,
+        url TEXT NOT NULL,
+        UNIQUE (user_name, url)
+      );
+
+      CREATE TABLE IF NOT EXISTS profiles (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL,
+        username TEXT NOT NULL UNIQUE,
+        created_at TIMESTAMP DEFAULT now()
+      );
+    `);
+
+    ready = true;
+    console.log("✅ db.js: Postgres available, using DB-backed storage");
+  } catch (err) {
+    console.warn("⚠️ db.js: Postgres unavailable, falling back to file storage:", err.message);
+    pool = null;
+    ready = false;
+  }
 }
 
-
-
-// initialize on require
 init();
 
 /*async function readFileUrls() {

@@ -10,48 +10,30 @@ let pool = null;
 let ready = false;
 
 async function init() {
-  // Render gives DATABASE_URL, local does not.
-  const isRender = !!process.env.DATABASE_URL;
+  const useSSL = !!process.env.DATABASE_URL;
+  const maxRetries = 10;
+  let attempts = 0;
 
-  const connectionConfig = isRender
-    ? {
-        connectionString: process.env.DATABASE_URL,
-        ssl: { rejectUnauthorized: false }
-      }
-    : {
-        connectionString: DB_URL,
-        ssl: false
-      };
+  while (attempts < maxRetries) {
+    try {
+      pool = new Pool({ connectionString: DB_URL, ssl: useSSL });
+      await pool.query("SELECT 1");
+      console.log("✅ Postgres ready");
+      ready = true;
+      break;
+    } catch (err) {
+      attempts++;
+      console.warn(`⚠️ Postgres not ready yet (${attempts}/${maxRetries}):`, err.message);
+      await new Promise((r) => setTimeout(r, 2000));
+    }
+  }
 
-  try {
-    pool = new Pool(connectionConfig);
-
-    await pool.query("SELECT 1");
-
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS saved_urls (
-        id SERIAL PRIMARY KEY,
-        user_name TEXT NOT NULL,
-        url TEXT NOT NULL,
-        UNIQUE (user_name, url)
-      );
-
-      CREATE TABLE IF NOT EXISTS profiles (
-        id SERIAL PRIMARY KEY,
-        name TEXT NOT NULL,
-        username TEXT NOT NULL UNIQUE,
-        created_at TIMESTAMP DEFAULT now()
-      );
-    `);
-
-    ready = true;
-    console.log("✅ db.js: Postgres available:", isRender ? "Render DB" : "Local DB");
-  } catch (err) {
-    console.warn("⚠️ db.js: Postgres unavailable, falling back to file storage:", err.message);
+  if (!ready) {
+    console.warn("⚠️ Postgres unavailable, falling back to file storage");
     pool = null;
-    ready = false;
   }
 }
+
 
 
 // initialize on require

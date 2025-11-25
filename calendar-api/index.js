@@ -450,8 +450,8 @@ const path = require("path");
 // Serve built UI from calendar-api/public
 app.use(express.static(path.join(__dirname, "public")));
 
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+app.get("/*", (_req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 const PORT = process.env.PORT || 3001;

@@ -5,9 +5,7 @@ services:
     container_name: my_postgres
     restart: always
     environment:
-      POSTGRES_USER: myuser
-      POSTGRES_PASSWORD: mypassword
-      POSTGRES_DB: mydb
+      DATABASE_URL: postgresql://mydb_zfgz_user:OtiBYwtot49Yi7X8qKzrutm8FOv5R4eY@dpg-d4in69q4d50c73d7hfrg-a/mydb_zfgz
     ports:
       - "5438:5432"
     volumes:

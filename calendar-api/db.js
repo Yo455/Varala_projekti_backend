@@ -12,7 +12,11 @@ let ready = false;
 
 async function init() {
   try {
-    pool = new Pool({ connectionString: DB_URL });
+    pool = new Pool({
+    connectionString: DB_URL,
+    ssl: { rejectUnauthorized: false }
+  });
+
     await pool.query("SELECT 1");
     await pool.query(`
   CREATE TABLE IF NOT EXISTS saved_urls (

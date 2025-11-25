@@ -441,5 +441,17 @@ app.get("/health", async (_req, res) => {
   }
 });
 
+app.get("/", (req, res) => {
+  res.send("API is running");
+});
+const path = require("path");
+
+// Serve built UI from calendar-api/public
+app.use(express.static(path.join(__dirname, "public")));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => console.log(`✅ API running at http://localhost:${PORT}`));
+app.listen(PORT, () => console.log("API running on", PORT));

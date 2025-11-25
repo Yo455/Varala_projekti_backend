@@ -286,8 +286,6 @@ export default function Calendar() {
         onLogout={handleLogout}
       />
 
-      <h2>Kalenteri-demo (ICS → FullCalendar)</h2>
-
       <div className="calendar-header">
         <UrlInputs sources={sources} setSources={setSources} onLoad={load} />
 
@@ -307,6 +305,7 @@ export default function Calendar() {
         ref={calRef}
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, luxonPlugin]}
         initialView="timeGridWeek"
+        slotMinTime={"05:00:00"}
         height="78vh"
         events={displayedEvents}
         firstDay={1}

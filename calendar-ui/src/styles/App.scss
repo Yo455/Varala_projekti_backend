@@ -10,17 +10,16 @@ body {
   background: var(--bg);
 }
 
-/* Profile picture and profile */
+/*=========================================
+  Profile card styles
+ =========================================*/
 .profile-background {
-  width: 350px;
-  margin: 20px;
+  width: 300px;
   border-radius: 8px;
   padding: 20px;
   background: v.$secondary-color;
+  @include mixins.flex-col($align: center);
 
-  display: flex;
-  flex-direction: column;
-  align-items: center;
 }
 
 .profile-image {
@@ -33,16 +32,14 @@ body {
 
 .profile-name {
   text-align: center;
-  font-size: 30px;
-  color: white;
+  @include mixins.text($fontsize: 30px);
   margin-bottom: 50px;
 }
 
 .profile-info {
   width: 100%;
   text-align: left;
-  font-size: 17px;
-  color: white;
+  @include mixins.text($fontsize: 17px)
 }
 
 // Viivat tietojen alle
@@ -57,13 +54,17 @@ body {
   margin-right: 15px; // tilaa label:n ja value:n väliin
 }
 
-/* Lay out of front page */
+/*=========================================
+  Front page
+ =========================================*/
 .frontpage {
   @include mixins.flex-row(flex-start);
   gap: 5px;
 }
 
-/* FullCalendar styles */
+/*=========================================
+  FullCalendar
+ =========================================*/
 .fc {
   --fc-border-color: var(--black);
   --fc-today-bg-color: var(--bg);
@@ -74,16 +75,20 @@ body {
   }
 }
 
-/* Events */
+/*=========================================
+  Events
+ =========================================*/
 .display-events {
   padding: 5;
   width: 100%;
   margin: 0 auto;
-  white-space: wrap;
+  white-space: pre-line;
   flex: 1;
 }
 
-/* Header of the calendar page */
+/*=========================================
+  Calendar header
+ =========================================*/
 .calendar-header {
   display: grid;
   grid-template-columns: 1fr auto;
@@ -92,7 +97,9 @@ body {
   margin-bottom: 1rem;
 }
 
-/* Layout for URL and buttons */
+/*=========================================
+  URL source styles
+ =========================================*/
 .sources-list {
   display: grid;
   gap: 8px;
@@ -105,19 +112,185 @@ body {
       @include mixins.flex-col;
 
       label {
-        font-size: 12px;
+        @include mixins.text($color: v.$black);
       }
 
       input {
+        @include mixins.text($fontsize: 12px, $color: v.$black);
         height: 20px;
-        font-size: 12px;
       }
     }
 
     button {
-      height: 30px;
-      padding: 0 12px;
-      margin-left: 20px;
+     @include mixins.buttons;
+     margin-left: 10px;
     }
   }
+}
+
+/*=========================================
+  URL button styles
+ =========================================*/
+.control-buttons {
+  @include mixins.flex-row;
+  margin-top: 12px;
+
+   button {
+    @include mixins.buttons;
+    @include mixins.text($fontsize: 12px, $color: v.$black);
+    margin-left: 12px;
+   }
+}
+
+/*=========================================
+  Top navigation styles
+ =========================================*/
+.navigation {
+  @include mixins.flex-row(flex-start);
+  gap: 20px;
+  padding: 15px 25px;
+  background: v.$secondary-color;
+  border-radius: 8px;
+  margin: 20px;
+
+  a {
+    @include mixins.text($fontsize: 18px);
+    padding: 8px 14px;
+    border-radius: 6px;
+
+    transition: background 0.2s ease, color 0.2s ease;
+
+    &.active {
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+  }
+
+}
+
+/*=========================================
+  Left menu styles
+ =========================================*/
+
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+  width: 100px;
+  background: v.$secondary-color;
+  border-radius: 10px;
+
+  a {
+    @include mixins.text;
+    padding: 10px 14px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    &.active {
+      text-decoration: underline;
+      text-underline-offset: 4px;
+    }
+  }
+}
+
+/*=========================================
+  Profile header styles
+ =========================================*/
+.profile-header {
+  @include mixins.flex-row;
+  background-color: v.$secondary-color;
+  border-radius: 10px;
+  padding-left: 10px;
+  padding-right: 10px;
+  margin-bottom: 20px;
+  
+  //Active profile text
+  .profile-active {
+    @include mixins.text($fontsize: 18px);
+  }
+
+  //Current user text
+  .profile-user {
+    @include mixins.text;
+  }
+}
+
+//Log out button
+.profile-button {
+  @include mixins.buttons($color: v.$red);
+  @include mixins.text($fontsize: 12px);
+  margin-top: 20px;
+}
+
+/*=========================================
+  Login page styles
+ =========================================*/
+
+.login {
+  @include mixins.flex-col;
+  width: 450px;
+  @include mixins.text($color: v.$black);
+  
+  //profile selection
+  .profile-select {
+    select {
+      width: 100%;
+      height: 35px;
+    }
+  
+    //delete button
+    button {
+      @include mixins.buttons($color: v.$red);
+      margin-top: 12px;
+    }
+  }
+
+  //add profile button
+  button {
+    @include mixins.buttons($color: v.$green);
+    margin-top: 12px;
+    margin-right: 10px;
+  }
+
+  //cancel button
+  .cancel {
+    @include mixins.buttons($color: gray);
+  }
+
+  //name and password fields
+  input {
+    width: 100%;
+    padding: 8px;
+    margin-top: 12px;
+
+  }
+
+  //error message
+  .error {
+    @include mixins.text($color: v.$red);
+  }
+
+  //login button
+  .login-bt {
+    @include mixins.buttons;
+  }
+}
+
+/*=========================================
+  Source checkboxes
+ =========================================*/
+.checkbox-legend {
+ display: inline-flex;
+ align-items: center;
+ vertical-align: middle;
+ gap: 5px;
+ margin: 5px;
 }

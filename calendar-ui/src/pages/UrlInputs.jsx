@@ -93,7 +93,6 @@ export default function UrlInputs({ sources, setSources, onLoad }) {
               placeholder="https://…/calendar.ics"
               value={s.url}
               onChange={(e) => setSources((prev) => prev.map((p, idx) => (idx === i ? { ...p, url: e.target.value } : p)))}
-              style={{ width: "100%" }}
             />
           </div>
           <div>

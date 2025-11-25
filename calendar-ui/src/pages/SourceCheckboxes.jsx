@@ -5,9 +5,9 @@
  */
 export default function SourceCheckboxes({ sources, setSources }) {
   return (
-    <div style={{ display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap", marginBottom: 8 }}>
+    <div>
       {sources.map((s, i) => (
-        <label key={i} style={{ display: "inline-flex", gap: 8, alignItems: "center" }}>
+        <label key={i}>
           <input
             type="checkbox"
             checked={s.checked}
@@ -27,7 +27,7 @@ export default function SourceCheckboxes({ sources, setSources }) {
  */
 export function Legend({ color, label }) {
   return (
-    <span style={{ display: "inline-flex", gap: 6, alignItems: "center" }}>
+    <span className="checkbox-legend">
       <span style={{ width: 12, height: 12, background: color, borderRadius: 2 }} />
       {label}
     </span>

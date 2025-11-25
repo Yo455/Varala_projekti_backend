@@ -33,12 +33,12 @@ Jos linkkejä ei anneta, näytetään demotapahtumat (Treeni ja Ottelu).
 
 2. Asenna riippuvuudet
 
-    `npm install` (asennus pitää tehdä alikansiossa Varala_projekti_backend)
+    `npm install` (asennus pitää tehdä alikansiossa `Varala_projekti_backend`)
 
 
 4. Käynnistä sovellus
 
-    Aja komento `npm start` (käynnistys pitää tehdä alikansiossa Varala_projekti_backend)
+    Aja komento `npm start` (käynnistys pitää tehdä alikansiossa `Varala_projekti_backend`):
 
     ![Logo](pictures/npmstart.png)
 
@@ -82,7 +82,9 @@ Linkkejä pystyy lisäämään kalenterisivun ylälaidassa:
 `Lisää lähde` painikkeella saa lisättyä lisää urleja = lisää kalentereita, esimerkiksi `https://calendar.google.com/calendar/ical/204650eee292ad67ed781fc74930ddc416e1b8922d1d317c67bc0c08b9194831%40group.calendar.google.com/private-4678258c072591cfc475df6315615c9a/basic.ics`
 
 `Tallenna URLit` painikkeella saa tallennettua urlit tietokantaan.[Siirry kohtaan Tarkastele Tietokantaa](#tarkastele-tietokantaa)
+
 `Poista` painikkeella saa poistettuja urleja = kalenterit eivät näy kalenterinäkymässä.
+
 `Hae Kalenterit` painikkeella saa haettua kalenterit, kun linkin on syöttänyt tekstikenttään.
 
 Yläpalkissa on myös dashboard.

@@ -28,8 +28,11 @@ async function waitForDB(retries = 10, delay = 2000) {
 }
 async function init() {
   try {
-    await waitForDB();
     const useSSL = !!process.env.DATABASE_URL;
+    if (!process.env.DATABASE_URL) {
+      await waitForDB();
+    }
+    
     pool = new Pool({ connectionString: DB_URL, ssl: useSSL });
 
     await pool.query("SELECT 1");

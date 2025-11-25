@@ -12,10 +12,11 @@ let pool = null;
 let ready = false;
 
 async function init() {
+  const useSSL = !!process.env.DATABASE_URL;
   try {
     pool = new Pool({
     connectionString: DB_URL,
-    ssl: useSSL
+    ssl: useSSL ? { rejectUnauthorized: false } : false
   });
 
     await pool.query("SELECT 1");

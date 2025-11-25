@@ -5,7 +5,7 @@ const { Pool } = require("pg");
 
 const DB_URL =
   process.env.DATABASE_URL ||
-  `postgres://${process.env.POSTGRES_USER || "myuser"}:${process.env.POSTGRES_PASSWORD || "mypassword"}@${process.env.PGHOST || "db"}:${process.env.PGPORT || "5432"}/${process.env.POSTGRES_DB || "mydb"}`;
+  `postgres://${process.env.POSTGRES_USER}:${process.env.POSTGRES_PASSWORD}@${process.env.PGHOST || "db"}:${process.env.PGPORT || "5432"}/${process.env.POSTGRES_DB}`;
 let pool = null;
 let ready = false;
 

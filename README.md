@@ -83,6 +83,11 @@ Linkkejä pystyy lisäämään kalenterisivun ylälaidassa:
 
 `Tallenna URLit` painikkeella saa tallennettua urlit tietokantaan.[Siirry kohtaan Tarkastele Tietokantaa](#tarkastele-tietokantaa)
 
+Kun näkyy tämä ilmoitus, niin tallennus on onnistunut:
+
+![alt](pictures/screenshot.png)
+
+
 `Poista` painikkeella saa poistettuja urleja = kalenterit eivät näy kalenterinäkymässä.
 
 `Hae Kalenterit` painikkeella saa haettua kalenterit, kun linkin on syöttänyt tekstikenttään.
@@ -121,6 +126,11 @@ pääsee katsomaan tietokantaa komentokehotteen kautta. Voi tarkastella tallenne
 select * from saved_urls;
 ```
 
-avulla. **Pitää muistaa tallentaa urlit, ennen kuin ne näkyvät**
+Urlit näkyvät taulukossa:
+
+![alt](pictures/psql.png)
+
+
+avulla. **Pitää muistaa tallentaa urlit, ennen kuin ne näkyvät tietokannassa.**
 
 

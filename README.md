@@ -50,31 +50,60 @@ Jos linkkejä ei anneta, näytetään demotapahtumat (Treeni ja Ottelu).
 
 ### Kirjautuminen
 
-Ohjelman käynnistyttyä käyttäjä pääsee kirjautumisivulle:  
+Ohjelman käynnistyttyä käyttäjä pääsee kirjautumisivulle:
+
 ![Kirjautumisnäkymä](pictures/login.png)
 
-Kirjautumissivulla voi lisätä ja poistaa profiileja:  
+Kirjautumissivulla voi lisätä ja poistaa profiileja:
+
 ![Lisää/poista profiileja](pictures/loginnappi.png)
 
-Lisätyistä profiileista pääsee valitsemaan sen profiilin, jolla kirjaudutaan:  
+Lisätyistä profiileista pääsee valitsemaan sen profiilin, jolla kirjaudutaan:
+
 ![Profiilien valinta](pictures/profiilit.png)
 
-Kirjautumisnapilla pääsee kalenterinäkymään:  
+Kirjautumisnapilla pääsee kalenterinäkymään:
+
 ![Kirjaudu](pictures/kirjaudu.png)
 
 ### Kalenterin käyttö
 
-Kalenterinäkymässä näkyy profiilin opiskelija(placeholder) ja lukujärjestys:  
+Kalenterinäkymässä näkyy profiilin opiskelija(placeholder) ja lukujärjestys:
+
 ![Opiskelijakortti](pictures/opiskelijakortti.png)
 
 ![Kalenteri](pictures/kalenteri.png)
 
-Linkkejä pystyy lisäämään kalenterisivun ylälaidassa:  
-![Lisää lähde -näkymä](pictures/dash.png)
+Linkkejä pystyy lisäämään kalenterisivun ylälaidassa:
 
-`Lisää lähde` painikkeella saa lisättyä lisää urleja = lisää kalentereita.
+![Lisää lähde -näkymä](pictures/dash.png)
+![napit](pictures/napit.png)
+
+`Lisää lähde` painikkeella saa lisättyä lisää urleja = lisää kalentereita, esimerkiksi `https://calendar.google.com/calendar/ical/204650eee292ad67ed781fc74930ddc416e1b8922d1d317c67bc0c08b9194831%40group.calendar.google.com/private-4678258c072591cfc475df6315615c9a/basic.ics`
+
+`Tallenna URLit` painikkeella saa tallennettua urlit tietokantaan.[Siirry kohtaan Tarkastele Tietokantaa](#tarkastele-tietokantaa)
+`Poista` painikkeella saa poistettuja urleja = kalenterit eivät näy kalenterinäkymässä.
+`Hae Kalenterit` painikkeella saa haettua kalenterit, kun linkin on syöttänyt tekstikenttään.
+
+Yläpalkissa on myös dashboard.
+
+![alt](pictures/image1.png)
+
+
+Ylhäältä pääsee kirjautumaan ulos `Kirjaudu ulos` napista. Tällöin päästään takas kirjautumissivulle. [Siirry kohtaan Kirjautuminen](#kirjautuminen)
+
 
 ### Virheilmoitukset
+
+Ei voi laittaa samaa kahta kalenteria = linkkiä:
+
+![alt](pictures/error1.png)
+
+Profiilin ja käyttäjätunnuksen pitää olla samat:
+
+![alt](pictures/error4.png)
+
+
 
 ### Tarkastele tietokantaa
 

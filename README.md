@@ -11,38 +11,83 @@ Frontend (React / FullCalendar): Näyttää kalenteritapahtumat selaimessa visua
 
 🚀 Toiminnot
 
+Voi tallentaa eri profiileille omat lukujärjestykset, lisätä ja poistaa lukujärjestyksiä. [Siirry kohtaan Ohjelman käyttö](#ohjelman-käyttö)
+
 Syötä yksi tai kaksi ICS-linkkiä (esim. Google Calendar tai Outlookin kalenterin julkinen linkki).
 
 Sovellus hakee tapahtumat backendin kautta ja näyttää ne FullCalendarissa.
 
 Jos linkkejä ei anneta, näytetään demotapahtumat (Treeni ja Ottelu).
 
-Voi tallentaa eri profiileille omat lukujärjestykset
+
 
 🛠️ Asennus ja käynnistys
 
+**Asennettuna pitää olla Docker Desktop, että ohjelman saa auki komentokehotteesta. Myös github pitää olla käytössä**
+
 1. Kloonaa projekti
 
-    git clone https://github.com/Yo455/Varala_projekti_backend.git
+    `git clone https://github.com/Yo455/Varala_projekti_backend.git` ja sitten `cd Varala_projekti_backend`
 
-    Oikeaan branchiin pääsee git checkout komennolla `git checkout <branchin nimi>`
+    Oikeaan branchiin pääsee git checkout komennolla `git checkout <branchin nimi>`. Tällä hetkellä branchissa `main` on toimiva versio lokaalisti (varmista, että Varala_projekti_backend kansio)
 
 2. Asenna riippuvuudet
 
-    npm install (asennus pitää tehdä alikansiossa Varala_projekti_backend)
+    `npm install` (asennus pitää tehdä alikansiossa Varala_projekti_backend)
 
 
 4. Käynnistä sovellus
 
-    npm start (käynnistys pitää tehdä alikansiossa Varala_projekti_backend)
+    Aja komento `npm start` (käynnistys pitää tehdä alikansiossa Varala_projekti_backend)
     ![Logo](pictures/npmstart.png)
 
     selaimeen ohjelman saa auki localhost kohdasta seuraamalla linkkiä:
     ![Logo](pictures/local.png)
 
-5. Tarkastele tietokantaa
+
+## Ohjelman käyttö
+
+### Kirjautuminen
+
+    Ohjelman käynnistyttyä käyttäjä pääsee kirjautumisivulle:
+    ![Logo](pictures/login.png)
+
+    Kirjautumissivulla voi lisätä ja poistaa profiileja:
+    ![alt text](pictures/loginnappi.png)
+
+    Lisätyistä profiileista pääsee valitsemaan sen profiilin, jolla kirjaudutaan:
+    ![alt text](pictures/profiilit.png)
+
+    Kirjautumisnapilla pääsee kalenterinäkymään:
+    ![alt text](pictures/kirjaudu.png)
+    
+
+    
+
+### Kalenterin käyttö
+
+    Kalenterinäkymässä näkyy profiilin opiskelija(placeholder) ja lukujärjestys:
+    ![alt text](pictures/opiskelijakortti.png)
+
+    ![Logo](pictures/kalenteri.png)
+
+    Linkkejä pystyy lisäämään kalenterisivun ylälaidassa:
+    ![Logo](pictures/dash.png)
+
+    `Lisää lähde` painikkeella saa lisättyä lisää urleja = lisää kalentereita.
+
+
+
+
+    
+
+### Virheilmoitukset
+
+
+
+ ### Tarkastele tietokantaa
 
     Komennolla `docker exec -it my_postgres psql -U myuser -d mydb ` pääsee katsomaan tietokantaa komentokehotteen kautta.
-    Voi tarkastella tallennettuja url-linkkejä komennon ` select * from saved_urls; ` avulla.
+    Voi tarkastella tallennettuja url-linkkejä komennon ` select * from saved_urls; ` avulla. **Pitää muistaa tallentaa urlit, ennen kuin ne näkyvät**
 
 

@@ -55,6 +55,120 @@ body {
 }
 
 /*=========================================
+  Contacts
+ =========================================*/
+.popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  width: 400px;
+  height: 600px;
+  background-color: v.$primary-color;
+  padding: 20px;
+  border: 2px solid rgb(0, 0, 0);
+  border-radius: 18px;
+}
+
+.close-button {
+  position: fixed;
+  right: 20px;
+  background-color: v.$white;
+  font-weight: bold;
+  @include mixins.text($fontsize: 22px, $color: v.$black);
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 2px solid black;
+  cursor: pointer;
+}
+
+.popup-container {
+  margin-top: 30px;
+}
+
+.popup-container h2 {
+  text-align: center;
+  @include mixins.text($fontsize: 32px, $color: v.$white);
+}
+
+.popup-contacts {
+  text-align: left;
+  @include mixins.text($fontsize: 1.2em);
+  padding-top: 15px;
+}
+
+.contact-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background-color: v.$white;
+  border: 2px solid black;
+  border-radius: 8px;
+  color: black;
+}
+
+.contact-label input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+
+.select-all-checkbox {
+  display: flex;
+  justify-content: end;
+  align-items: center;
+  padding: 10px;
+}
+
+.select-all-checkbox input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+
+.select-all-checkbox .select-all-text {
+  margin-right: 10px;
+  color: v.$white;
+}
+
+.message-form {
+  padding-bottom: 15px;
+}
+
+.message-form textarea {
+  width: 100%;
+  height: 100px;
+  padding: 8px;
+  box-sizing: border-box;
+  border-radius: 8px;
+  border: 2px solid black;
+  @include mixins.text($fontsize: 16px, $color: v.$black);
+}
+
+.message-form label {
+  display: flex;
+  padding-bottom: 10px;
+  @include mixins.text($fontsize: 17px);
+}
+
+.send-button-container {
+  display: flex;
+  justify-content: center;
+}
+
+.send-button {
+  background-color: v.$white;
+  @include mixins.text($fontsize: 15px, $color: v.$black);
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 2px solid black;
+  cursor: pointer;
+}
+
+
+/*=========================================
   Front page
  =========================================*/
 .frontpage {
@@ -122,8 +236,8 @@ body {
     }
 
     button {
-     @include mixins.buttons;
-     margin-left: 10px;
+      @include mixins.buttons;
+      margin-left: 10px;
     }
   }
 }
@@ -135,11 +249,11 @@ body {
   @include mixins.flex-row;
   margin-top: 12px;
 
-   button {
+  button {
     @include mixins.buttons;
     @include mixins.text($fontsize: 12px, $color: v.$black);
     margin-left: 12px;
-   }
+  }
 }
 
 /*=========================================
@@ -201,6 +315,23 @@ body {
   }
 }
 
+.sections button {
+  background: transparent;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 6px;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  @include mixins.text($color: v.$white);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
+}
+
 /*=========================================
   Profile header styles
  =========================================*/
@@ -211,7 +342,7 @@ body {
   padding-left: 10px;
   padding-right: 10px;
   margin-bottom: 20px;
-  
+
   //Active profile text
   .profile-active {
     @include mixins.text($fontsize: 18px);
@@ -238,14 +369,14 @@ body {
   @include mixins.flex-col;
   width: 450px;
   @include mixins.text($color: v.$black);
-  
+
   //profile selection
   .profile-select {
     select {
       width: 100%;
       height: 35px;
     }
-  
+
     //delete button
     button {
       @include mixins.buttons($color: v.$red);
@@ -288,9 +419,9 @@ body {
   Source checkboxes
  =========================================*/
 .checkbox-legend {
- display: inline-flex;
- align-items: center;
- vertical-align: middle;
- gap: 5px;
- margin: 5px;
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  gap: 5px;
+  margin: 5px;
 }

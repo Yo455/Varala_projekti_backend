@@ -1,29 +1,36 @@
-## Dockerfile to run backend (calendar-api) and frontend (calendar-ui) together
-# - does NOT modify project startup scripts
-# - installs dependencies for both sub-projects
-# - starts backend via `npm start` and frontend via `npm run dev -- --host 0.0.0.0`
-
+# -------- BASE IMAGE --------
 FROM node:20-bullseye-slim
 
 WORKDIR /app
 
-# copy package jsons first to leverage docker cache for installs
+# -------- INSTALL DEPENDENCIES FOR API AND UI --------
+# Copy package.json files first for caching
 COPY calendar-api/package*.json ./calendar-api/
 COPY calendar-ui/package*.json ./calendar-ui/
-COPY package.json ./
 
-# install dependencies for both subprojects (dev deps required for Vite)
-RUN cd calendar-api && npm install --no-audit --no-fund && \
-    cd ../calendar-ui && npm install --no-audit --no-fund
+# Install backend deps
+RUN cd calendar-api && npm install --no-audit --no-fund
 
-# copy full project
+# Install frontend deps
+RUN cd calendar-ui && npm install --no-audit --no-fund
+
+# -------- COPY FULL PROJECT --------
 COPY . .
 
-# Expose backend and Vite dev server ports
-EXPOSE 3001 5173
+# -------- BUILD FRONTEND --------
+RUN cd calendar-ui && npm run build
 
-ENV NODE_ENV=development
+# Copy built UI into backend public folder
+RUN mkdir -p calendar-api/public && \
+    cp -r calendar-ui/dist/* calendar-api/public/
 
-# Start API and UI together. We keep existing npm scripts unchanged.
-# We pass `-- --host 0.0.0.0` to the UI npm script so Vite prints usable network links in the container logs.
-CMD ["sh", "-c", "npm --prefix ./calendar-api run start & npm --prefix ./calendar-ui run dev -- --host 0.0.0.0"]
+# -------- EXPOSE API PORT --------
+EXPOSE 3001
+
+ENV NODE_ENV=production
+
+# -------- START ONLY BACKEND --------
+# Backend must serve both:
+#   /api/* → API
+#   all other routes → UI static files
+CMD ["npm", "--prefix", "calendar-api", "run", "start"]

@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "docker-compose up --build"
+    "start": "docker-compose up --build",
+    "start:local": "concurrently \"npm --prefix ./calendar-api run start\" \"npm --prefix ./calendar-ui run dev -- --host 0.0.0.0\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
   }
 }

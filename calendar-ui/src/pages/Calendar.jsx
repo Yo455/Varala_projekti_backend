@@ -67,6 +67,7 @@ export default function Calendar() {
    */
   function gotoIfPossible(iso) {
     if (!iso || !calRef.current) {
+      //"iso" on päivämäärä string-muodossa, esim muodossa "1970-01-01T00:00:00.000Z"
       console.warn("gotoIfPossible: Ei päivämäärää tai kalenteriviitettä");
       return;
     }
@@ -112,7 +113,13 @@ export default function Calendar() {
       }
 
       const data = await res.json();
-      const rows = Array.isArray(data) ? data : [];
+      let rows;
+      if (Array.isArray(data)) {
+        rows = data;
+      } else {
+        rows = [];
+      }
+      //tarkista onko data taulukko, jos ei niin aseta tyhjä taulukko
 
       // Luo uusi sources-taulukko profiilin URL-osoitteille (max 2 kuten alkuperäinen järjestelmä)
       const next = [

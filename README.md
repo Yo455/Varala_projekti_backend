@@ -23,6 +23,10 @@ Jos linkkejä ei anneta, näytetään demotapahtumat (Treeni ja Ottelu).
 
 🛠️ Asennus ja käynnistys
 
+Linkki(toimii ilman asennuksia): https://varala-e77x.onrender.com/
+
+Lokaalisti:
+
 **Asennettuna pitää olla Docker Desktop, että ohjelman saa auki komentokehotteesta. Myös github pitää olla käytössä**
 
 1. Kloonaa projekti

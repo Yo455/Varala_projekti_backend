@@ -47,6 +47,7 @@ Lokaalisti:
     ![Logo](pictures/npmstart.png)
 
     selaimeen ohjelman saa auki localhost kohdasta seuraamalla linkkiä:
+    
     ![Logo](pictures/local.png)
 
 

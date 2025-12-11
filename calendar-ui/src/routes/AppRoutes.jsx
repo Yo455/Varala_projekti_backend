@@ -2,6 +2,8 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "../pages/Login";
 import FrontPage from "../pages/FrontPage";
 
+
+//määrittelee sovelluksen reitit kirjautumissivulle ja etusivulle
 export default function AppRoutes() {
     return (
         <Routes>

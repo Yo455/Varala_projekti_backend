@@ -1,6 +1,7 @@
 import profileImage from '../assets/pekka.png'
 import { getUsername } from './calendarUtils';
 
+//palauttaa demoversion profiilikortista, jossa on käyttäjän tiedot. Tämä näkyy kalenterisivulla.
 export default function ProfileCard({
     name = getUsername(),
     ssn = "120812*****",

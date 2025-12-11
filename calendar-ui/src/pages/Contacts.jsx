@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+//komponentti, joka näyttää kontaktien listan ja mahdollistaa viestin lähettämisen valituille kontakteille
 function Contacts ({ isOpen, onClose }) {
     const [selectedIds, setSelectedIds] = useState([]);
     const contacts = [
@@ -11,6 +12,7 @@ function Contacts ({ isOpen, onClose }) {
 
     if (!isOpen) return null;
 
+    //käsittelee yksittäisen checkboxin tilan muutoksen
     const handleCheckboxChange = (event) => {
         const checkedId = event.target.value;
         if (event.target.checked) {
@@ -33,7 +35,9 @@ function Contacts ({ isOpen, onClose }) {
         onClose(); // close popup
     }
 
+    //Katsoo onko kaikki kontaktit valittu
     const allSelected = selectedIds.length === contacts.length;
+
 
     return (
         <div>
@@ -75,6 +79,8 @@ function Contacts ({ isOpen, onClose }) {
     )
 }
 
+
+// Popup-komponentti, joka näyttää sisällön popup-ikkunassa
 function Popup({ showPopup, closePopup, children }) {
     if (!showPopup) return null
 

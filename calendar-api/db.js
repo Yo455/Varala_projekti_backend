@@ -3,20 +3,22 @@ const path = require("path");
 const { Pool } = require("pg");
 
 
+// Postgres-yhteyden määrittely ympäristömuuttujien perusteella
 const DB_URL =
   process.env.DATABASE_URL ||
   `postgres://${process.env.POSTGRES_USER}:${process.env.POSTGRES_PASSWORD}@${process.env.PGHOST || "db"}:${process.env.PGPORT || "5432"}/${process.env.POSTGRES_DB}`;
 let pool = null;
 let ready = false;
 
+//odottaa, että Postgres on valmis, yrittää yhdistää useita kertoja
 async function waitForDB(retries = 10, delay = 2000) {
-  const useSSL = !!process.env.DATABASE_URL;
+  const useSSL = !!process.env.DATABASE_URL; //käytetään SSL:ää, jos DATABASE_URL on asetettu, yleensä pilvipalveluissa vaaditaan SSL-yhteys
   for (let i = 0; i < retries; i++) {
     try {
-      const testPool = new Pool({ connectionString: DB_URL, ssl: useSSL });
-      await testPool.query("SELECT 1");
-      await testPool.end();
-      console.log("✅ Postgres is ready");
+      const testPool = new Pool({ connectionString: DB_URL, ssl: useSSL }); //luodaan uusi pool-yhteys tietokantaan
+      await testPool.query("SELECT 1"); //testataan yhteys suorittamalla yksinkertainen kysely
+      await testPool.end(); //suljetaan testiyhteys
+      console.log("✅ Postgres is ready"); //jos onnistuu, tietokanta on valmis ja tulostetaan viesti konsoliin
       return true;
     } catch (err) {
       console.log(`⚠️ Postgres not ready yet (${i + 1}/${retries}) - retrying in ${delay}ms`);
@@ -24,9 +26,9 @@ async function waitForDB(retries = 10, delay = 2000) {
     }
   }
 
-  throw new Error("❌ Postgres did not become ready in time");
+  throw new Error("❌ Postgres did not become ready in time"); //jos ei onnistu, heitetään virhe
 }
-async function init() {
+async function init() { //alustaa tietokantayhteyden ja luo tarvittavat taulut, jos niitä ei ole olemassa
   try {
     const useSSL = !!process.env.DATABASE_URL;
     if (!process.env.DATABASE_URL) {
@@ -37,6 +39,8 @@ async function init() {
 
     await pool.query("SELECT 1");
 
+
+    //pitäisi olla init.sql:ssä, mutta taulut luodaan nyt tässä
     await pool.query(`
       CREATE TABLE IF NOT EXISTS saved_urls (
         id SERIAL PRIMARY KEY,
@@ -54,32 +58,17 @@ async function init() {
     `);
 
     ready = true;
-    console.log("✅ db.js: Postgres available, using DB-backed storage");
+    console.log("✅ db.js: Postgres available, using DB-backed storage"); //jos kaikki ok, db valmis käyttöön
   } catch (err) {
-    console.warn("⚠️ db.js: Postgres unavailable, falling back to file storage:", err.message);
+    console.warn("⚠️ db.js: Postgres unavailable, falling back to file storage:", err.message); //jos ei onnistu, db ei valmis, käytetään fallbacktia eikä toimi ohjelma oikein
     pool = null;
     ready = false;
   }
 }
 
-init();
+init(); //käynnistetään init-funktio heti moduulin latautuessa, tekee siis tietokantayhteyden
 
-/*async function readFileUrls() {
-  try {
-    //const txt = await fs.readFile(URL_FILE, "utf8");
-    return txt.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
-  } catch (e) {
-    if (e.code === "ENOENT") return [];
-    throw e;
-  }
-}
-
-async function writeFileUrls(list) {
-  const unique = Array.from(new Set(list.map((s) => String(s || "").trim()).filter(Boolean)));
-  await fs.writeFile(URL_FILE, unique.join("\n"), "utf8");
-  return unique;
-}
-*/
+//kerää kaikki tallennetut URL-osoitteet tietylle käyttäjälle tai kaikille käyttäjille
 async function getAll(user) {
   if (!ready || !pool) {
     console.warn("db.js getAll: Postgres not ready — returning empty list");
@@ -95,6 +84,7 @@ async function getAll(user) {
       query += ` ORDER BY id`;
     }
 
+    //suorita kysely tietokantaan
     const res = await pool.query(query, params);
     return res.rows.map((r) => ({
       id: r.id,
@@ -108,13 +98,14 @@ async function getAll(user) {
   }
 }
 
-
+//lisää uusia URL-osoitteita tietylle käyttäjälle, välttää duplikaatit tekemällä duplikaattitarkistuksen
 async function add(urls, user) {
   if (!user) {
     console.warn("db.js add: Missing user");
     return await getAll();
   }
 
+  //urlien normalisointi: trimmaa whitespace, korvaa webcal/webcals https:llä, poista loput vinoviivat, helpompi käsitellä, joten siksi tehdään näin
   const normalizeUrl = (u) =>
     String(u || "").trim().replace(/^webcal(s)?:\/\//i, "https://").replace(/\/+$/, "");
 
@@ -126,6 +117,8 @@ async function add(urls, user) {
     return await getAll(user);
   }
 
+
+//client on yhteys poolista, , lisätään URLit käyttäjälle, jos duplikaatteja löytyy, ohitetaan ne, lopuksi commit tai rollback virheen sattuessa
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
@@ -134,34 +127,34 @@ async function add(urls, user) {
     for (const u of unique) {
       await client.query(insertText, [user, u]);
     }
-    await client.query("COMMIT");
+    await client.query("COMMIT"); //jos kaikki onnistuu, tehdään commit eli siis tallennetaan muutokset tietokantaan
   } catch (err) {
-    try { await client.query("ROLLBACK"); } catch (_) { }
-    console.warn("db.js add failed:", err.message);
+    try { await client.query("ROLLBACK"); } catch (_) { } //jos jokin menee pieleen, rollbackataan eli perutaan kaikki muutokset
+    console.warn("db.js add failed:", err.message); //lokitetaan virhe
   } finally {
-    client.release();
+    client.release(); //vapautetaan client takaisin pooliin eli suljetaan yhteys
   }
 
   return await getAll(user);
 }
 
 
-
+//poistaa tallennetun URL-osoitteen tietyn käyttäjän osalta id:n perusteella
 async function removeById(id, user) {
   if (!id || !user) return await getAll(user);
   if (!ready || !pool) {
-    console.warn("db.js removeById: Postgres not ready — no-op");
+    console.warn("db.js removeById: Postgres not ready — no-op"); //jos tietokanta ei ole valmis, ei tehdä mitään
     return await getAll(user);
   }
   try {
-    await pool.query("DELETE FROM saved_urls WHERE id = $1 AND user_name = $2", [id, user]);
+    await pool.query("DELETE FROM saved_urls WHERE id = $1 AND user_name = $2", [id, user]); //poistetaan rivi id:n ja käyttäjän perusteella, $1 ja $2 ovat paikkamerkkejä
     return await getAll(user);
   } catch (err) {
     console.warn("db.js removeById failed:", err.message);
     return await getAll(user);
   }
 }
-
+//poistaa tallennetun URL-osoitteen tietyn käyttäjän osalta URL:n perusteella
 async function removeByUrl(url, user) {
   if (!url || !user) return await getAll(user);
   if (!ready || !pool) {
@@ -181,7 +174,7 @@ async function removeByUrl(url, user) {
   }
 }
 
-
+//exportataan funktiot, joita muut moduulit voivat käyttää
 module.exports = {
   getAll,
   add,
@@ -234,7 +227,7 @@ async function addProfile(name, username) {
     return await getProfiles();
   }
 }
-
+//poistaa profiilin id:n perusteella
 async function removeProfileById(id) {
   if (!id) return await getProfiles();
   if (!ready || !pool) {
@@ -249,7 +242,7 @@ async function removeProfileById(id) {
     return await getProfiles();
   }
 }
-
+//Hae profiili id:n perusteella
 async function getProfileById(id) {
   if (!id) return null;
   if (!ready || !pool) {
@@ -260,6 +253,7 @@ async function getProfileById(id) {
     const res = await pool.query("SELECT id, name, username, created_at FROM profiles WHERE id = $1 LIMIT 1", [id]);
     if (res.rows && res.rows.length > 0) {
       const r = res.rows[0];
+      //palauttaa profiiliobjektin, jossa on id, nimi, käyttäjätunnus ja luontiaika, nämä ovat tietokannan sarakkeita
       return { id: r.id, name: r.name, username: r.username, createdAt: r.created_at };
     }
     return null;
@@ -269,11 +263,13 @@ async function getProfileById(id) {
   }
 }
 
+//poistaa kaikki tallennetut URL-osoitteet tietyn käyttäjän osalta
 async function removeUrlsByUser(user) {
   if (!user) return await getAll(user);
   if (!ready || !pool) {
-    console.warn("db.js removeUrlsByUser: Postgres not ready — no-op");
+    console.warn("db.js removeUrlsByUser: Postgres not ready — no-op"); //jos tietokanta ei ole valmis, ei tehdä mitään
     return await getAll(user);
+  
   }
   try {
     await pool.query("DELETE FROM saved_urls WHERE user_name = $1", [user]);

@@ -76,7 +76,7 @@ export default function Login() {
                     updatedProfiles = [...profiles, updatedProfiles[0]];
                 }
                 setProfiles(updatedProfiles);
-                // store a local copy as fallback
+                // s'ilyttä profiilit localStoragessa
                 localStorage.setItem("profiles", JSON.stringify(updatedProfiles));
                 // mark newly created profile as active
                 let created = null;

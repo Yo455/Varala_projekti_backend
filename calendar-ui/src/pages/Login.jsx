@@ -19,7 +19,6 @@ export default function Login() {
     const API = "http://localhost:3001"; // backendin osoite 
 
 
-    //cons
     // Lataa profiilit palvelimelta (tai localStoragesta, jos palvelin ei vastaa)
     useEffect(() => {
         const load = async () => {
@@ -45,6 +44,7 @@ export default function Login() {
                 const savedActiveProfile = localStorage.getItem("activeProfile"); // hae tallennettu aktiivinen profiili
                 if (savedProfiles) {
                     try {
+                        // jäsennä tallennetut profiilit
                         const parsedProfiles = JSON.parse(savedProfiles);
                         setProfiles(parsedProfiles);
                             if (savedActiveProfile) {
@@ -95,12 +95,12 @@ export default function Login() {
                 setNewProfileName(""); // 
                 setShowAddProfile(false); // piilota lisäämislomake
             } catch (err) {
+                // jos profiilin luonti epäonnistuu, lisää paikallisesti
                 console.error('Lisäyksessä virhe, tallennetaan localStorageen:', err.message);
                 const newProfile = { id: Date.now().toString(), name: name.trim(), username: name.trim(), createdAt: new Date().toISOString() };
                 const updatedProfiles = [...profiles, newProfile];
                 setProfiles(updatedProfiles);
                 localStorage.setItem("profiles", JSON.stringify(updatedProfiles));
-                // set local fallback profile active
                 setActiveProfile(newProfile);
                 setUsername(newProfile.username);
                 localStorage.setItem("activeProfile", newProfile.id);
@@ -153,11 +153,13 @@ export default function Login() {
         e.preventDefault();
         setErrorMessage("");
 
+        // Varmista, että käyttäjätunnus on syötetty, trimmataan whitespace pois
         if (!username.trim()) {
             setErrorMessage("Käyttäjätunnus on pakollinen.");
             return;
         }
 
+        // Varmista, että salasana on syötetty, trimmataan whitespace pois
         if (!password.trim()) {
             setErrorMessage("Salasana on pakollinen.");
             return;

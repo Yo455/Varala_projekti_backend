@@ -85,7 +85,9 @@ export default function Calendar() {
    */
   function handleLogout() {
     try {
+      // Poista autentikointitiedot localStoragesta
       localStorage.removeItem("auth");
+      // Ohjaa käyttäjä login-sivulle
       navigate("/", { replace: true });
     } catch (error) {
       console.error("Virhe uloskirjautumisessa:", error);
@@ -115,6 +117,7 @@ export default function Calendar() {
       // Hakee vastausdatan JSON-muotona
       const data = await res.json();
       let rows;
+      // Tarkista onko data taulukko
       if (Array.isArray(data)) {
         rows = data;
       } else {
@@ -148,7 +151,7 @@ export default function Calendar() {
           await showDemo();
           return;
         }
-
+        // Lataa profiilin URL-osoitteet
         await loadProfileUrls(user);
       } catch (error) {
         console.error("Virhe komponentin alustuksessa:", error);
@@ -168,9 +171,9 @@ export default function Calendar() {
   async function showDemo() {
     setLoading(true);
     try {
-      // Luo demotapahtuma seuraavalle tunnille
+      // Luo demotapahtuma seuraavalle tunnille, näytä se kalenterissa kun ei ole muita tapahtumia
       const now = new Date();
-      const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 9).toISOString();
+      const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 9).toISOString(); 
       const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 10).toISOString();
       const events = [{ id: "demo-1", title: "Demo-tapahtuma", start, end, source: "demo" }];
       const colored = colorize(events, DEFAULT_COLORS[0]);
@@ -221,7 +224,9 @@ export default function Calendar() {
         const idx = toFetch.findIndex((t) => t.url === s.url);
         return { ...s, events: idx >= 0 ? results[idx] : [] };
       });
+      // Päivitä sources tila ladatuilla tapahtumilla
       setSources(next);
+      // Siirry ensimmäisen tapahtuman päivämäärään
       setDemoEvents([]);
     } catch (error) {
       console.error("Virhe tapahtumien latauksessa:", error);
@@ -248,6 +253,7 @@ export default function Calendar() {
         throw new Error(`URL-osoitteiden lataus epäonnistui: ${res.status}`);
       }
 
+      // Hakee vastausdatan JSON-muotona
       const rows = await res.json();
       const next = (Array.isArray(rows) ? rows : []).map((r, i) => ({
         url: r.url || "",

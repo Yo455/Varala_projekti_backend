@@ -111,7 +111,7 @@ export default function Calendar() {
         await showDemo();
         return;
       }
-
+      // Hakee vastausdatan JSON-muotona
       const data = await res.json();
       let rows;
       if (Array.isArray(data)) {
@@ -121,13 +121,14 @@ export default function Calendar() {
       }
       //tarkista onko data taulukko, jos ei niin aseta tyhjä taulukko
 
-      // Luo uusi sources-taulukko profiilin URL-osoitteille (max 2 kuten alkuperäinen järjestelmä)
+      // Luo uusi sources-taulukko profiilin URL-osoitteille (max 2 kun lataa sivun)
       const next = [
         { url: rows[0]?.url || "", label: "Lähde 1", color: DEFAULT_COLORS[0], checked: true, events: [], id: rows[0]?.id || undefined },
         { url: rows[1]?.url || "", label: "Lähde 2", color: DEFAULT_COLORS[1], checked: true, events: [], id: rows[1]?.id || undefined },
       ];
       setSources(next);
 
+      // Jos molemmat URLit puuttuvat, näytä demo, muuten lataa tapahtumat
       if (!rows[0]?.url && !rows[1]?.url) await showDemo();
       else await load(next);
     } catch (error) {
@@ -136,7 +137,7 @@ export default function Calendar() {
     }
   }
 
-  // On mount: try to load saved urls for current user (if any), otherwise show local demo
+  // Komponentin mounttaus: lataa tallennetut URL-osoitteet tai näytä demo
   useEffect(() => {
     async function loadSavedOnMount() {
       try {
@@ -154,7 +155,7 @@ export default function Calendar() {
       }
     }
     loadSavedOnMount();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Tyhjennä demotapahtumat komponentin unmountissa
   }, []);
 
   const hasUrls = useMemo(() => sources.some((s) => s.url && s.url.trim().length > 0), [sources]);
@@ -193,6 +194,7 @@ export default function Calendar() {
       return;
     }
 
+    // Aseta lataustila päälle
     setLoading(true);
     try {
       const promises = toFetch.map(async (s) => {
@@ -210,7 +212,8 @@ export default function Calendar() {
           return [];
         }
       });
-
+      
+      // Odota kaikkia fetch-promiseja, tarkoittaa että odotetaan kaikkien URLien tapahtumien latausta
       const results = await Promise.all(promises);
       const next = src.map((s) => {
         const idx = toFetch.findIndex((t) => t.url === s.url);
@@ -263,6 +266,7 @@ export default function Calendar() {
         return;
       }
 
+      // Päivitä sources ja lataa tapahtumat
       setSources(next);
       await load(next);
     } catch (error) {
@@ -278,6 +282,7 @@ export default function Calendar() {
     ...sources.flatMap((s) => (s.checked ? s.events || [] : [])),
   ];
 
+  // Palauttaa kalenterinäkymän
   return (
     <div className="display-events">
 

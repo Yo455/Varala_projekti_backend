@@ -153,7 +153,7 @@ app.get("/profiles", async (_req, res) => {
   }
 });
 
-// POST /profiles -> add a new profile
+// POST /profiles -> luo uusi profiili
 app.post("/profiles", async (req, res) => {
   try {
     const body = req.body || {}; // Varmista, että body on määritetty, req.body voi olla undefined jos ei ole JSON
@@ -171,14 +171,14 @@ app.post("/profiles", async (req, res) => {
   }
 });
 
-// DELETE /profiles/:id -> delete profile by id
+// DELETE /profiles/:id -> poista profiili id:llä
 app.delete("/profiles/:id", async (req, res) => {
   try {
     const id = Number(req.params.id);
     console.log('[SERVER] DELETE /profiles/:id called for id=', id);
     if (!Number.isFinite(id)) return res.status(400).json({ error: "Invalid id" });
 
-    // Try to find the profile first so we know the username to clean up saved_urls
+    // Poista myös profiiliin liittyvät saved_urls rivit
     const profile = await db.getProfileById(id);
     if (profile && profile.username) {
       console.log('[SERVER] Deleting saved_urls for username =', profile.username); // Lokita poistettava käyttäjätunnus
@@ -201,14 +201,14 @@ app.get("/events", async (req, res) => {
   try {
     const url = String(req.query.url || "").trim();
     const user = String(req.query.user || "").trim();
-
+    // Jos ei url eikä user, palauta demotapahtuma
     if (!url && !user) {
       const now = new Date();
       const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 9).toISOString();
       const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 10).toISOString();
       return res.json([{ id: "demo-1", title: "Demo-tapahtuma", start, end, source: "demo", eventColor: COLORS[0] }]);
     }
-
+    // Jos url on annettu, hae ja palauta yhden ICS:n tapahtumat
     if (url) {
       try {
         const events = await fetchIcs(url, COLORS[0], url); // Hae ja jäsennä ICS URL, index 0 väri, eli sininen tässä tapauksessa
@@ -249,17 +249,17 @@ app.get("/health", async (_req, res) => {
     return res.status(500).json({ ok: false, error: String(err?.message || err) });
   }
 });
-
+// Perus reitti, palauttaa yksinkertaisen viestin
 app.get("/", (req, res) => {
   res.send("API is running");
 });
 
 
 
-// Serve React UI static files
+// Staattiset tiedostot (frontendin build-kansio)
 app.use(express.static(path.join(__dirname, "public"))); // Staattiset tiedostot, path.join tarkoittaa polun yhdistämistä eli tässä tapauksessa calendar-api/public kansio, varmistaa että toimii eri käyttöjärjestelmissä
 
-// Catch-all route for React (must come AFTER all API routes)
+// app.get("*") käsittelee kaikki muut reitit, jotka eivät ole määritelty yllä
 app.get("*", (_req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });

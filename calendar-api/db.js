@@ -3,6 +3,20 @@ const path = require("path");
 const { Pool } = require("pg");
 
 
+// -------------------------
+// Tietokanta-funktiot
+// 1. getAll(user) - Hae kaikki tallennetut URLit käyttäjälle
+// 2. add(urls, user) - Lisää uusia URL-osoitteita käyttäjälle
+// 3. removeById(id, user) - Poista tallennettu URL id:llä käyttäjältä
+// 4. removeByUrl(url, user) - Poista tallennettu URL URL:llä käyttäjältä
+// 5. Profiilit:
+//    - getProfiles() - Hae kaikki profiilit
+//    - addProfile(name, username) - Lisää uusi profiili
+//    - removeProfileById(id) - Poista profiili id:llä
+//    - getProfileById(id) - Hae profiili id:llä
+//    - removeUrlsByUser(user) - Poista kaikki tallennetut URLit käyttäjältä
+// -------------------------
+
 // Postgres-yhteyden määrittely ympäristömuuttujien perusteella
 const DB_URL =
   process.env.DATABASE_URL ||

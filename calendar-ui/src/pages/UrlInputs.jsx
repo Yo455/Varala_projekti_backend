@@ -82,7 +82,7 @@ export default function UrlInputs({ sources, setSources, onLoad }) {
       alert(`URL:n poisto epäonnistui: ${error.message}`);
     }
   };
-
+  // Palauttaa URL-syöttökenttien komponentin
   return (
     <div className="sources-list">
       {sources.map((s, i) => (

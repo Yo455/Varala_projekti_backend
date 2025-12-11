@@ -168,12 +168,12 @@ export default function Login() {
             setErrorMessage("Valitse profiili ennen kirjautumista.");
             return;
         }
-
+        // tarkista käyttäjätunnus
         if (String(activeProfile.username).trim() !== username.trim()) {
             setErrorMessage("Käyttäjätunnus ei vastaa valittua profiilia.");
             return;
         }
-
+        // Simuloi kirjautumista
         setLoading(true);
 
         try {

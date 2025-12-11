@@ -37,7 +37,7 @@ export default function Calendar() {
   // Navigointi hook React Routerista
   const navigate = useNavigate();
 
-  // Kalenterilähteiden tila (max 2 lähdettä profiilia kohden)
+  // Kalenterilähteiden tila  (URLit, värit, tapahtumat, yms.)
   const [sources, setSources] = useState([
     { url: "", label: "Lähde 1", color: DEFAULT_COLORS[0], checked: true, events: [] },
     { url: "", label: "Lähde 2", color: DEFAULT_COLORS[1], checked: true, events: [] },
@@ -71,6 +71,7 @@ export default function Calendar() {
       console.warn("gotoIfPossible: Ei päivämäärää tai kalenteriviitettä");
       return;
     }
+    // Kutsu FullCalendarin gotoDate-metodia päivämäärän siirtämiseksi
     try {
       calRef.current.getApi().gotoDate(iso);
     } catch (error) {
@@ -167,6 +168,7 @@ export default function Calendar() {
   async function showDemo() {
     setLoading(true);
     try {
+      // Luo demotapahtuma seuraavalle tunnille
       const now = new Date();
       const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 9).toISOString();
       const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 10).toISOString();

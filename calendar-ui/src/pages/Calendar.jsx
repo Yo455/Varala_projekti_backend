@@ -3,7 +3,7 @@
  *
  * Tämä komponentti tarjoaa seuraavat ominaisuudet:
  * - ICS-kalenterien näyttäminen FullCalendar-kirjastolla
- * - Useiden kalenterilähteiden hallinta (max 2 per profiili)
+ * - Useiden kalenterilähteiden hallinta 
  * - Profiilikohtainen tallennus ja lataus
  * - Kalenteritapahtumien reaaliaikainen haku ja näyttö
  * - Demotila jos ei ole tallennettuja kalentereita

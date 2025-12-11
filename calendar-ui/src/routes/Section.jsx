@@ -1,6 +1,7 @@
 import { NavLink } from "react-router-dom";
 import "../styles/App.scss";
 
+//palauttaa osioiden navigaatiokomponentin, joka sisältää linkit eri sovellusosiin
 export default function Section({ onOpenContacts }) {
   return (
     <nav className="sections">

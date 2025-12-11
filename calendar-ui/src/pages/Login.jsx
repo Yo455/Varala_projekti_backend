@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 
-
+//palauttaa kirjautumissivun komponentin, jossa käyttäjä voi valita profiilin, lisätä uuden profiilin ja kirjautua sisään
 export default function Login() {
 
     const navigate = useNavigate();
@@ -18,6 +18,8 @@ export default function Login() {
     const [newProfileName, setNewProfileName] = useState("");
     const API = "http://localhost:3001"; // backendin osoite 
 
+
+    //cons
     // Lataa profiilit palvelimelta (tai localStoragesta, jos palvelin ei vastaa)
     useEffect(() => {
         const load = async () => {
@@ -37,9 +39,10 @@ export default function Login() {
                     }
                 }
             } catch (e) {
+                // jos palvelin ei vastaa, lataa profiilit localStoragesta
                 console.error("Virhe profiilien lataamisessa palvelimelta, käytetään localStorage:", e.message);
-                const savedProfiles = localStorage.getItem("profiles");
-                const savedActiveProfile = localStorage.getItem("activeProfile");
+                const savedProfiles = localStorage.getItem("profiles"); // hae tallennetut profiilit
+                const savedActiveProfile = localStorage.getItem("activeProfile"); // hae tallennettu aktiivinen profiili
                 if (savedProfiles) {
                     try {
                         const parsedProfiles = JSON.parse(savedProfiles);
@@ -69,26 +72,28 @@ export default function Login() {
                 const res = await fetch(`${API}/profiles`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
                 if (!res.ok) throw new Error('Failed creating profile');
                 const resp = await res.json();
-                // resp may be a single created profile or the full list
+                // päivitä profiililista
                 let updatedProfiles = Array.isArray(resp) ? resp : [resp];
-                // if server returned only created profile, merge with current list
+                // jos vain yksi profiili luotu, lisää se vanhojen joukkoon
                 if (updatedProfiles.length === 1) {
                     updatedProfiles = [...profiles, updatedProfiles[0]];
                 }
                 setProfiles(updatedProfiles);
-                // s'ilyttä profiilit localStoragessa
+                // säilytä profiilit localStoragessa
                 localStorage.setItem("profiles", JSON.stringify(updatedProfiles));
-                // mark newly created profile as active
-                let created = null;
-                if (Array.isArray(resp) && resp.length === 1) created = resp[0];
+                // merkitsee uuden profiilin aktiiviseksi
+                let created = null; // etsi luotu profiili
+                if (Array.isArray(resp) && resp.length === 1) created = resp[0]; // jos palautui taulukko, ota ensimmäinen
                 if (!created) created = updatedProfiles.find(p => String(p.username) === String(payload.username)) || updatedProfiles[updatedProfiles.length - 1];
+                // aseta aktiiviseksi
                 if (created) {
                     setActiveProfile(created);
                     setUsername(created.username);
                     localStorage.setItem("activeProfile", String(created.id));
                 }
-                setNewProfileName("");
-                setShowAddProfile(false);
+                //jos profiili luotu onnistuneesti, tyhjennä lomake
+                setNewProfileName(""); // 
+                setShowAddProfile(false); // piilota lisäämislomake
             } catch (err) {
                 console.error('Lisäyksessä virhe, tallennetaan localStorageen:', err.message);
                 const newProfile = { id: Date.now().toString(), name: name.trim(), username: name.trim(), createdAt: new Date().toISOString() };
@@ -121,12 +126,14 @@ export default function Login() {
                 const list = await res.json();
                 setProfiles(list || []);
                 localStorage.setItem("profiles", JSON.stringify(list || []));
+                //JSON.stringify päivittää aktiivisen profiilin
                 if (activeProfile && String(activeProfile.id) === String(profileId)) {
                     setActiveProfile(null);
                     setUsername("");
                     localStorage.removeItem("activeProfile");
                 }
             } catch (err) {
+                // jos poistaminen epäonnistuu, päivitä paikallisesti
                 console.error('Poistossa virhe, päivitetään paikallisesti:', err.message);
                 const updatedProfiles = profiles.filter(p => p.id !== profileId);
                 setProfiles(updatedProfiles);
@@ -141,7 +148,7 @@ export default function Login() {
     } 
 
 
-
+// Käsittelee kirjautumisen
     async function handleSubmit(e) {
         e.preventDefault();
         setErrorMessage("");
@@ -192,7 +199,7 @@ export default function Login() {
     }
 
 
-
+//palauttaa kirjautumissivun komponentin, jossa käyttäjä voi valita profiilin, lisätä uuden profiilin ja kirjautua sisään
     return (
         <div className="login">
             <h2>Kirjaudu</h2>

@@ -21,14 +21,15 @@ function Contacts ({ isOpen, onClose }) {
             setSelectedIds(selectedIds.filter(id => id !== checkedId))
         }
     }
-
+    //käsittelee kaikkien checkboxien valinnan tai poistamisen
     const handleSelectAllCheckboxes = (event) => {
-        // get an array of all IDs
+        // taulkko kaikista kontaktien ID:stä
         const contactsArray = contacts.map(c => c.id);
-        // on check of master checkbox, return all IDs and on uncheck, an empty array
+        // jos valitaan kaikki, aseta kaikki ID:t valituiksi, muuten tyhjennä valinnat
         setSelectedIds(event.target.checked ? contactsArray : [])
     }
 
+    //käsittelee viestin lähettämisen
     const handleSendMessage = () => {
         alert("Viesti lähetetty onnistuneesti!")
         setSelectedIds([]);
@@ -38,7 +39,7 @@ function Contacts ({ isOpen, onClose }) {
     //Katsoo onko kaikki kontaktit valittu
     const allSelected = selectedIds.length === contacts.length;
 
-
+    //palauttaa kontaktien popup-ikkunan sisällön
     return (
         <div>
             <Popup showPopup={isOpen} closePopup={onClose}>
@@ -91,5 +92,5 @@ function Popup({ showPopup, closePopup, children }) {
         </div>
     )
 }
-
+//exporttaa Contacts-komponentin
 export default Contacts;
